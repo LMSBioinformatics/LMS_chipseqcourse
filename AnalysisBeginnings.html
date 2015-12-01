@@ -141,6 +141,95 @@
 <p>Show expanding columns</p>
 
 <p>Retrieve fastq file.</p>
+</div></div></section><section><div class="sl-block" data-block-type="text" style="width: 800px; left: 80px; top: 92px; height: auto;" data-block-id="94f4ee7b98677594215899b4fe5f214a"><div class="sl-block-content" data-placeholder-tag="h1" data-placeholder-text="Title Text" style="z-index: 10;">
+<h1>Data from Collaborators.</h1>
+</div></div>
+<div class="sl-block" data-block-type="text" style="width: 800px; left: 80px; top: 206px; height: auto;" data-block-id="243e5b5af03d927807a39a17f66c7e53"><div class="sl-block-content" data-placeholder-tag="h2" data-placeholder-text="Subtitle" style="z-index: 11;">
+<ul>
+	<li>Often collaborators will provide (very) processed data.
+	<ul>
+		<li>Saves time in transfer (raw data can be large).</li>
+		<li>Want to share some parts of data (but perhaps not all yet).</li>
+		<li>Analysis steps are in house only (so you could not replicate from raw data).</li>
+	</ul>
+	</li>
+</ul>
+</div></div>
+<div class="sl-block" data-block-type="text" data-block-id="de0b082757dac6996ee29941a497eb87" style="height: auto; min-width: 30px; min-height: 30px; width: 800px; left: 80px; top: 490px;"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 13;">
+<ul>
+	<li>Most basic format you will start with is fastq (but even that maybe processed.)</li>
+</ul>
+</div></div></section><section><div class="sl-block" data-block-type="text" style="width: 800px; left: 80px; top: 70px; height: auto;" data-block-id="ffc4b6c76d67b01d529b2fffc40f7b0e"><div class="sl-block-content" data-placeholder-tag="h1" data-placeholder-text="Title Text" style="z-index: 11;">
+<h1>Data from Collaborators.</h1>
+</div></div>
+<div class="sl-block" data-block-type="text" data-block-id="cf47183c32843b3e292d1f00da3b109f" style="height: auto; min-width: 30px; min-height: 30px; width: 800px; left: 80px; top: 189px;"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 12;">
+<ul>
+	<li>Working with processed data types can be tricky. 
+	<ul>
+		<li>They may be unusual format.</li>
+		<li>They may have been processed in a way which confounds your analysis (repeat mapping strategies).</li>
+	</ul>
+	</li>
+	<li>Working from fastq will mean you understand how data has been processsed.
+	<ul>
+		<li>As long as you know how to process the data (collaborator's in-house methods may be unavailable).</li>
+	</ul>
+	</li>
+</ul>
+</div></div></section><section><div class="sl-block" data-block-type="text" style="width: 800px; left: 80px; top: 92px; height: auto;" data-block-id="b5436c14309562fa71333e8184a4f819"><div class="sl-block-content" data-placeholder-tag="h1" data-placeholder-text="Title Text">
+<h1>Your own CSC data</h1>
+</div></div>
+<div class="sl-block" data-block-type="text" style="width: 960px; left: 0px; top: 206px; height: auto;" data-block-id="87258ac68b0b55423e91537ab654e7c4"><div class="sl-block-content" data-placeholder-tag="h2" data-placeholder-text="Subtitle">
+<ul>
+	<li>
+	<p>If you run high throughput sequencing at the Clinical Science Centre you will be delivered a path to your data in Fastq format. </p>
+	</li>
+	<li>
+	<p>The Bioinformatics Core will process optical data to base calls presented as Fastq.</p>
+	</li>
+	<li>
+	<p>A member of the Core team will have assessed that your data meets minimal sequencing standards.</p>
+	</li>
+	<li>
+	<p>Fastq maybe stored gzipped.</p>
+
+	<ul>
+		<li>
+		<p>Many programs wont mind.</p>
+		</li>
+		<li>
+		<p>You will have to  unpack to view sequences manually.</p>
+		</li>
+	</ul>
+	</li>
+</ul>
+</div></div></section><section><div class="sl-block" data-block-type="text" style="width: 960px; left: 0px; top: 81px; height: auto;" data-block-id="c8a395afc29d2d03e6d4b881606c1214"><div class="sl-block-content" data-placeholder-tag="h1" data-placeholder-text="Title Text">
+<h1>Illumina Basecalling Pipeline</h1>
+</div></div>
+<div class="sl-block" data-block-type="text" style="width: 800px; left: 80px; top: 287px; height: auto;" data-block-id="8b32cadc651cc953be90c6335605e556"><div class="sl-block-content" data-placeholder-tag="h2" data-placeholder-text="Subtitle">
+<h2>.Marian maybe help here?</h2>
+</div></div></section><section><div class="sl-block" data-block-type="text" style="width: 800px; left: 80px; top: 103px; height: auto;" data-block-id="c22a4fe3d9b4082ca68d1f733a368749"><div class="sl-block-content" data-placeholder-tag="h2" data-placeholder-text="Title Text">
+<h2>Bioinformatics Core Workflow</h2>
+</div></div>
+<div class="sl-block" data-block-type="text" style="width: 800px; left: 80px; top: 264px; height: auto;" data-block-id="7fcf0d3f0c0f46d9cb5b23bda5403170"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text">
+<ul>
+	<li>Implemented in R (Mostly).</li>
+	<li>Makes use of Illumina's software for basecalling.</li>
+	<li>Allows for version control and some automation.</li>
+	<li>Available on our MRC CSC Github.  (<a href="https://github.com/mrccsc/genomicsProcessing" target="_blank">https://github.com/mrccsc/genomicsProcessing</a>)</li>
+</ul>
+</div></div></section><section><div class="sl-block" data-block-type="text" style="width: 800px; left: 80px; top: 86px; height: auto;" data-block-id="4d951fb0ddbe54ee2b4bfcc78fdfd93f"><div class="sl-block-content" data-placeholder-tag="h2" data-placeholder-text="Title Text">
+<h2 style="color:rgb(51, 51, 51)">Bioinformatics Core Workflow</h2>
+
+<h2>FastQ quality Control</h2>
+</div></div>
+<div class="sl-block" data-block-type="text" style="width: 800px; left: 80px; top: 264px; height: auto;" data-block-id="92654ed2aef49640865ca82036dc3403"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text">
+<ul>
+	<li>Marian's R script?</li>
+	<li>FastQC description.</li>
+</ul>
+</div></div></section><section><div class="sl-block" data-block-type="text" style="width: 800px; left: 80px; top: 100px; height: auto;" data-block-id="f2c9bd2e79d172d2881dd62fc6c7a4c3"><div class="sl-block-content" data-placeholder-tag="h1" data-placeholder-text="Title Text">
+<h1>FastQ to Aligned Data</h1>
 </div></div></section>
 			</div>
 		</div>
