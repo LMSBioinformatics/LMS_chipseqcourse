@@ -1,0 +1,50 @@
+Part 1/ 
+Intro to sequencing and process of ChIP-seq.
+- Practical parts of Chip-seq/DNA-seq
+- fastq
+- bam
+- bigWigs/Coverage graphs
+- Bed/narrowPeak
+
+Part 2/
+Where to start.
+- Getting data .. sraDB, geoQuery, AnnotationHub
+- basecalling
+- Fastq quality control
+- Alignments
+- Initial QC.
+
+Part 3/
+Enriched Intervals.
+- Input bias and Blacklists.
+- Peak Calling.
+- More quality control
+- Manipulations Gand adding context. -- nearest etc. 
+
+Part 4/
+Coverage
+- Creating coverage.
+- Working with Coverage and Views.
+- Exporting bigWigs.
+- Visualising coverage using soGGI.
+
+Part 5/
+Functional analysis.
+- Enrichment testing of functional terms.
+- Motif analysis known.
+- Motif analysis denovo.
+- Adding motifs using soGGI.
+
+Part 6/
+Differential Binding analysis.
+- Counting in peaks.
+- DE using DESEQ2.
+- DE using EdgeR.
+
+
+
+
+
+
+
+
