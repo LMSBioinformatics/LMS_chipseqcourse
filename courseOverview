@@ -19,32 +19,33 @@ Where to start.
 ##http://stackoverflow.com/questions/6551446/can-i-run-html-files-directly-from-github-instead-of-just-viewing-their-source
 
 Part 3/
-Enriched Intervals.
-- Input bias and Blacklists.
-- Peak Calling.
-- More quality control
-- Manipulations Gand adding context. -- nearest etc. 
-
-Part 4/
 Coverage
 - Creating coverage.
 - Working with Coverage and Views.
 - Exporting bigWigs.
 - Visualising coverage using soGGI.
 
-Part 5/
-Functional analysis.
-- Enrichment testing of functional terms.
-- Motif analysis known.
-- Motif analysis denovo.
-- Adding motifs using soGGI.
 
-Part 6/
+Part 4/
+Enriched Intervals.
+- Input bias and Blacklists.
+- Peak Calling.
+- More quality control
+- Manipulations Gand adding context. -- nearest etc. 
+— Consensus peaks?
+
+Part 5/
 Differential Binding analysis.
 - Counting in peaks.
 - DE using DESEQ2.
 - DE using EdgeR.
 
+Part 6/
+Functional analysis.
+- Enrichment testing of functional terms.
+- Motif analysis known.
+- Motif analysis denovo.
+- Adding motifs using soGGI.
 
 
 
