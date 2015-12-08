@@ -1,4 +1,5 @@
 Part 1/ 
+Gonna use Myc and CTCF..ER or Foxa1 would be good.
 Intro to sequencing and process of ChIP-seq.
 - Practical parts of Chip-seq/DNA-seq
 - fastq
@@ -30,7 +31,7 @@ Part 4/
 Enriched Intervals.
 - Input bias and Blacklists.
 - Peak Calling.
-- More quality control
+- More quality control..point out summit.
 - Manipulations Gand adding context. -- nearest etc. 
 — Consensus peaks?
 
@@ -39,13 +40,22 @@ Differential Binding analysis.
 - Counting in peaks.
 - DE using DESEQ2.
 - DE using EdgeR.
+—— Future of peak counting..
 
 Part 6/
 Functional analysis.
 - Enrichment testing of functional terms.
+—— by hand,
+——rGreat
 - Motif analysis known.
+—— matchPWM CTCF vs Myc Motif.
 - Motif analysis denovo.
+—— Biostrings from Regions.
+—- Meme-ChIP
 - Adding motifs using soGGI.
+——Plotting motif coverage in soGGi
+
+
 
 
 
