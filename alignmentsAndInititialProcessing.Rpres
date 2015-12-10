@@ -80,16 +80,17 @@ Here we simply need to point the subread aligner at the reference genome and fas
 Lets just do one for brevity.
 
 We will use type 1 (for DNA) and stop the search for complex indels
-```{r, echo=T,eval=F}
+```{r, echo=T,eval=T}
 fastqToAlign <-dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",
                    pattern="*.fastq.gz$",full.names=T)
 index = "/Users/tcarroll/chipseqcourse/referenceData//mm9_index"
 # Get our number of cores
-BiocParallel::register(BiocParallel::MulticoreParam(20))
+BiocParallel::register(BiocParallel::MulticoreParam(3))
 
+# bplapply(fastqToAlign,function(x)align(index,x,nthreads=4,type=1,complexIndels=FALSE))
 
 for(i in 1:length(fastqToAlign)){
-align(index,fastqToAlign[i],nthreads=2,type=1,complexIndels=FALSE)
+  align(index,fastqToAlign[i],nthreads=4,type=1,complexIndels=FALSE,phredOffset=64)
 message("file", i, "aligned")
 }  
 
@@ -111,7 +112,7 @@ Working with alignments. (Indexing)
 =========================================================
 
 Indexing a file allows for random access of only the parts of the files of interest
-```{r, echo=T,eval=F}
+```{r, echo=T,eval=T}
 
 BiocParallel::register(BiocParallel::MulticoreParam(8))
 toIndex <- dir("/Users/tcarroll/chipseqcourse/chipseqDataBAM/",pattern="*subreadsorted\\.BAM\\.bam$",full.names=T)
@@ -121,7 +122,7 @@ bplapply(toIndex,function(x) indexBam(file=x))
 
 Working with alignments. (Mapping Rates)
 =========================================================
-```{r, echo=T,eval=F}
+```{r, echo=T,eval=T}
 
 BiocParallel::register(BiocParallel::MulticoreParam(8))
 indexedBams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataBAM/",pattern="*subreadsorted\\.BAM\\.bam$",full.names=T)
@@ -140,7 +141,7 @@ Retrieving global information with RSamtools.
 
 The Rsamtools library is the main library to deal with BAM files.
 
-```{r, echo=T,eval=F}
+```{r, echo=T,eval=T}
 bamToRead <- BamFile(indexedBams[1])
 bamToRead
 ```
