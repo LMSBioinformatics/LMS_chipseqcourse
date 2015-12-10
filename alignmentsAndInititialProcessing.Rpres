@@ -127,7 +127,6 @@ BiocParallel::register(BiocParallel::MulticoreParam(8))
 indexedBams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataBAM/",pattern="*subreadsorted\\.BAM\\.bam$",full.names=T)
 stats <- bplapply(indexedBams,function(x) alignmentStats(x))
 stats[[5]]
-
 ```
 
 
@@ -136,12 +135,27 @@ Working with BAM files
 
 
 
-Inspecting the BAM header.
+Retrieving global information with RSamtools.
 ===========================
 The BAM header contains information on contigs aligned to and potentially programs used.
 
+The Rsamtools library is the main library to deal with BAM files.
 
+```{r, echo=T,eval=F}
+bamToRead <- BamFile(indexedBams[1])
+bamToRead
+```
 
+Retrieving global information with RSamtools.
+===========================
+```{r, echo=F,eval=T}
+indexedBams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataBAM/",pattern="*subreadsorted\\.BAM\\.bam$",full.names=T)
+```
+
+```{r, echo=T,eval=T}
+bamToRead <- BamFile(indexedBams[1])
+show(bamToRead)
+```
 
 
 

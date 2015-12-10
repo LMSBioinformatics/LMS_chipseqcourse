@@ -157,12 +157,39 @@ Working with BAM files
 
 
 
-Inspecting the BAM header.
+Retrieving global information with RSamtools.
 ===========================
 The BAM header contains information on contigs aligned to and potentially programs used.
 
+The Rsamtools library is the main library to deal with BAM files.
 
 
+```r
+bamToRead <- BamFile(indexedBams[1])
+bamToRead
+```
+
+Retrieving global information with RSamtools.
+===========================
+
+
+
+```r
+bamToRead <- BamFile(indexedBams[1])
+show(bamToRead)
+```
+
+```
+class: BamFile 
+path: .../wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1.fastq.gz.subreadsorted.BAM.bam
+index: .../wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1.fastq.gz.subreadsorted.BAM.bam.bai
+isOpen: FALSE 
+yieldSize: NA 
+obeyQname: FALSE 
+asMates: FALSE 
+qnamePrefixEnd: NA 
+qnameSuffixStart: NA 
+```
 
 
 
