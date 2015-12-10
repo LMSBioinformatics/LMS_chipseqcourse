@@ -137,7 +137,6 @@ Working with BAM files
 
 Retrieving global information with RSamtools.
 ===========================
-The BAM header contains information on contigs aligned to and potentially programs used.
 
 The Rsamtools library is the main library to deal with BAM files.
 
@@ -157,6 +156,34 @@ bamToRead <- BamFile(indexedBams[1])
 show(bamToRead)
 ```
 
+
+Retrieving global information with RSamtools.
+===========================
+The BAM header contains information on contigs aligned to and potentially programs used.
+
+```{r, echo=F,eval=T}
+indexedBams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataBAM/",pattern="*subreadsorted\\.BAM\\.bam$",full.names=T)
+```
+
+```{r, echo=T,eval=T}
+bamToRead <- BamFile(indexedBams[1])
+targets <- scanBamHeader(bamToRead)$targets
+knitr:::kable(data.frame(Contigs=names(targets),Lengths=targets,row.names = NULL))
+```
+
+Retrieving global information with RSamtools.
+===========================
+The BAM header contains information on contigs aligned to and potentially programs used.
+
+```{r, echo=F,eval=T}
+indexedBams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataBAM/",pattern="*subreadsorted\\.BAM\\.bam$",full.names=T)
+```
+
+```{r, echo=T,eval=T}
+scanBamHeader(bamToRead)$text["@HD"]
+scanBamHeader(bamToRead)$text["@PG"]
+
+```
 
 
 

@@ -159,7 +159,6 @@ Working with BAM files
 
 Retrieving global information with RSamtools.
 ===========================
-The BAM header contains information on contigs aligned to and potentially programs used.
 
 The Rsamtools library is the main library to deal with BAM files.
 
@@ -191,6 +190,71 @@ qnamePrefixEnd: NA
 qnameSuffixStart: NA 
 ```
 
+
+Retrieving global information with RSamtools.
+===========================
+The BAM header contains information on contigs aligned to and potentially programs used.
+
+
+
+
+```r
+bamToRead <- BamFile(indexedBams[1])
+targets <- scanBamHeader(bamToRead)$targets
+knitr:::kable(data.frame(Contigs=names(targets),Lengths=targets,row.names = NULL))
+```
+
+
+
+|Contigs |   Lengths|
+|:-------|---------:|
+|10      | 129993255|
+|11      | 121843856|
+|12      | 121257530|
+|13      | 120284312|
+|14      | 125194864|
+|15      | 103494974|
+|16      |  98319150|
+|17      |  95272651|
+|18      |  90772031|
+|19      |  61342430|
+|1       | 197195432|
+|2       | 181748087|
+|3       | 159599783|
+|4       | 155630120|
+|5       | 152537259|
+|6       | 149517037|
+|7       | 152524553|
+|8       | 131738871|
+|9       | 124076172|
+|MT      |     16299|
+|X       | 166650296|
+|Y       |  15902555|
+
+Retrieving global information with RSamtools.
+===========================
+The BAM header contains information on contigs aligned to and potentially programs used.
+
+
+
+
+```r
+scanBamHeader(bamToRead)$text["@HD"]
+```
+
+```
+$`@HD`
+[1] "VN:1.0"        "SO:coordinate"
+```
+
+```r
+scanBamHeader(bamToRead)$text["@PG"]
+```
+
+```
+$`@PG`
+[1] "ID:subread"         "PN:subread"         "VN:Rsubread 1.20.2"
+```
 
 
 
