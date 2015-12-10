@@ -1,4 +1,4 @@
 # chipseqcourseNew
 Course is under development 
 
-See 
+See courseOverview[https://github.com/ThomasCarroll/chipseqcourseNew/blob/master/courseOverview]
