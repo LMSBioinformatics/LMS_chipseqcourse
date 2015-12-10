@@ -1,3 +1,4 @@
 # chipseqcourseNew
-Cpurse is under development 
+Course is under development 
+
 See 
