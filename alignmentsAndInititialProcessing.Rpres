@@ -80,7 +80,7 @@ Here we simply need to point the subread aligner at the reference genome and fas
 Lets just do one for brevity.
 
 We will use type 1 (for DNA) and stop the search for complex indels
-```{r, echo=T,eval=T}
+```{r, echo=T,eval=F}
 fastqToAlign <-dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",
                    pattern="*.fastq.gz$",full.names=T)
 index = "/Users/tcarroll/chipseqcourse/referenceData//mm9_index"
@@ -99,7 +99,7 @@ Working with alignments. (Sorting)
 =========================================================
 
 Bam files need to be sorted in order to be used by most programs and properly indexed
-```{r, echo=T,eval=F,cache=T}
+```{r, echo=T,eval=F,cache=F}
 
 BiocParallel::register(BiocParallel::MulticoreParam(8))
 toSort <- dir("/Users/tcarroll/chipseqcourse/chipseqDataBAM/",pattern="*.BAM$",full.names=T)
@@ -112,7 +112,7 @@ Working with alignments. (Indexing)
 =========================================================
 
 Indexing a file allows for random access of only the parts of the files of interest
-```{r, echo=T,eval=T}
+```{r, echo=T,eval=F}
 
 BiocParallel::register(BiocParallel::MulticoreParam(8))
 toIndex <- dir("/Users/tcarroll/chipseqcourse/chipseqDataBAM/",pattern="*subreadsorted\\.BAM\\.bam$",full.names=T)
@@ -122,7 +122,7 @@ bplapply(toIndex,function(x) indexBam(file=x))
 
 Working with alignments. (Mapping Rates)
 =========================================================
-```{r, echo=T,eval=T}
+```{r, echo=T,eval=F}
 
 BiocParallel::register(BiocParallel::MulticoreParam(8))
 indexedBams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataBAM/",pattern="*subreadsorted\\.BAM\\.bam$",full.names=T)
