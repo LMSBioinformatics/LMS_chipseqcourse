@@ -30,6 +30,8 @@ Coverage
 - Visualising coverage using soGGI.
 http://grokbase.com/t/r/bioconductor/13aqpbf0cq/bioc-working-with-genome-wide-phastcons-scores
 
+add to prac — stranded bigwig.
+
 Part 4/
 Enriched Intervals.
 - Input bias and Blacklists.
@@ -62,7 +64,7 @@ Functional analysis.
 
 
 
-
+Fomr 1 - 4 any practicals will be smaller examples of what we show is possible by same code on the slides. Make point of saying that.
 
 
 
