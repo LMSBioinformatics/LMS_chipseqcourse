@@ -55,6 +55,8 @@ Functional analysis.
 - Motif analysis denovo.
 —— Biostrings from Regions.
 —- Meme-ChIP
+-— Stamp
+— RGadem/Motv/MotfiStack
 - Adding motifs using soGGI.
 ——Plotting motif coverage in soGGi
 
