@@ -1,0 +1,110 @@
+Working With Coverage
+========================================================
+
+
+Coverage provides a useful genome wide picture of signal.
+
+
+Coverting BAM files to Coverage
+========================================================
+Bam files can easily be converted to coverage like objects with the coverage() function.
+This by default produces a Run Length Encoding of signal over the genome.
+
+========================================================
+```{r,echo=F}
+library(rtracklayer)
+```
+
+
+```{r,eval=T,echo=F}
+path=("/Users/tcarroll/chipseqcourse/chipseqDataFQ/")
+```
+
+```{r,eval=T,echo=T,warnings=T,messages=F,cache=T}
+setwd(path)
+covExample <- coverage("wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1.bam")
+```
+
+The RLElist object
+========================================================
+ The RLElist stores the runs of scores across the genomes
+```{r, echo=T,dependson=covExample}
+length(covExample)
+covExample[[1]]
+
+```
+
+Arithmetric Operations on RLElist objects
+========================================================
+Arithmetric operations and running window operations are easily performed
+```{r, echo=T}
+cov10 <- covExample+10
+smoothedcov <- runsum(covExample[[10]],50)
+
+```
+
+
+
+RLElist functions
+========================================================
+ The RLElist stores the runs of scores across the genomes. Here calculate base pairs above a certain height.
+```{r, echo=T}
+tableOfDepths <- table(covExample[[1]])
+sum(tableOfDepths[names(tableOfDepths) > 50])
+```
+
+RLElist functions
+========================================================
+We can also get summary statistics
+```{r, echo=T}
+sdCov <- sd(covExample[[1]])
+meanCov <- mean(covExample[[1]])
+```
+
+
+RLElist functions
+========================================================
+We can use slice() function to select islands above mean + 1SD
+```{r, echo=T}
+myViews <- slice(covExample[[1]],lower=meanCov+sdCov)
+```
+
+Views functions
+========================================================
+Views objects hold the position of slice and scores along slice
+```{r, echo=T}
+myViews[1:4]
+```
+Creating views from IRanges
+========================================================
+```{r, echo=T}  
+exampleIR <- IRanges(start=c(3004224,8004225),end=c(3004236,8004237))
+myNewViews <- Views(covExample[[2]],exampleIR)
+```
+========================================================
+```{r, echo=T}
+myNewViews
+```
+
+Views can be very useful in summarising score across a region.
+========================================================
+```{r, echo=T}
+viewMeans(myViews)[1:4]
+viewSums(myViews)[1:4]
+```
+
+Views also have functions to extract the value and position of max or min signal in a region.
+```{r, echo=T}
+viewMins(myViews)
+viewMaxs(myViews)
+viewWhichMins(myViews)
+viewWhichMaxs(myViews)
+
+```
+
+Exporting bigWig -- How about fragment length extension.
+========================================================
+Finally we can export our coverage RLElist as a bigWig for visualising in IGV.
+```{r, echo=FALSE,eval=F}
+export.bw(covExample, "myTrialbigWig.bw")
+```
