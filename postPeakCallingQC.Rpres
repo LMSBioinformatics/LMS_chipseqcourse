@@ -45,5 +45,45 @@ ControlID = c("ch12","ch12","ch12","ch12")
 Peaks <- dir("/Users/tcarroll/chipseqcourse/MacsPeaks/",full.names=T)
 PeakCaller <- rep("macs",4)
 ss <- data.frame(SampleID,Tissue,Factor,Treatment,Replicate,Condition,bamReads,bamControl,ControlID,Peaks,PeakCaller)
-ChIPQC(ss,annotation=mm9AnnoNew,chromosomes="1,2,3",blacklist=myBL,consensus=F,bCount=F)
+res <- ChIPQC(ss,annotation=mm9AnnoNew,chromosomes=c("1","2","3","4"),blacklist=myBL,consensus=F,bCount=F)
+```
+
+First Slide
+========================================================
+
+Now we can compare between samples and replicates as we haver a ChIPexperiment object rather than a ChIPQCsample object
+
+```{r,echo=FALSE,eval=F,cache=T}
+
+QCmetrics(res)
+```
+
+First Slide
+========================================================
+```{r,echo=FALSE,eval=F,cache=T}
+plotCC(res)
+```
+
+First Slide
+========================================================
+```{r,echo=FALSE,eval=F,cache=T}
+plotSSD(res)
+```
+
+First Slide
+========================================================
+```{r,echo=FALSE,eval=F,cache=T}
+plotRegi(res)
+```
+
+First Slide
+========================================================
+```{r,echo=FALSE,eval=F,cache=T}
+plotFribl(res)
+```
+
+First Slide
+========================================================
+```{r,echo=FALSE,eval=F,cache=T}
+plotFrip(res)
 ```
