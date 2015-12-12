@@ -1,0 +1,135 @@
+---
+title: "Working with Genomic Intervals - Practical"
+author: "MRC CSC Bioinformatics Core Team"
+date: "15-16 December 2015"
+output:
+  pdf_document:
+    latex_engine: lualatex
+---
+```{r echo=FALSE, eval=TRUE}
+options(warn=-1)
+```
+
+
+Exercises
+---------
+
+1. `hg19Genes.txt` contains gene coordinates for Human genome hg19. Read the contents of `hg19Genes.txt` and create a GRanges object. 
+-----------------------------------------------------------------------
+
+```{r, echo=TRUE, eval=TRUE, message=FALSE, collapse=TRUE}
+library(GenomicRanges)
+hg19Gene <- read.table("hg19Genes.txt",sep="\t",header=T)
+
+# add 'chr' prefix to chromosome name
+hg19Gene$ChromosomeName <- paste("chr",hg19Gene$ChromosomeName,sep="")
+
+hg19Gene.GR <- GRanges(seqnames=hg19Gene$ChromosomeName,
+                       ranges=IRanges(start=hg19Gene$GeneStart,end=hg19Gene$GeneEnd),
+                       strand=ifelse(hg19Gene$Strand==1,"+","-"),
+                       EnsemblID=hg19Gene$EnsemblGeneID)
+hg19Gene.GR
+```
+
+
+2. Filter the above GRanges object for genes in chr1:1544000-2371000
+-----------------------------------------------------------------------
+```{r, echo=TRUE, eval=TRUE, message=FALSE, collapse=TRUE}
+chr1genes <- hg19Gene.GR[seqnames(hg19Gene.GR)=="chr1" & 
+                         start(hg19Gene.GR) > 1544000 & 
+                           end(hg19Gene.GR) < 2371000]
+head(chr1genes)
+
+# alternate
+chr1genes <- subset(hg19Gene.GR,start>1544000 & end<2371000 & seqnames=="chr1")
+```
+
+
+3. Create a GRanges of Transcription start sites (1 bp range) for the GRanges object created in Q1.
+---------------------------------------------------------------------------------
+
+* How to identify TSS for genes in forward/reverse strand?
+
+```{r, echo=TRUE, eval=TRUE, message=FALSE, collapse=TRUE}
+hg19Gene$TSS <- ifelse(hg19Gene$Strand==1,hg19Gene$GeneStart,hg19Gene$GeneEnd)
+
+hg19TSS <- GRanges(seqnames=hg19Gene$ChromosomeName,
+                       ranges=IRanges(start=hg19Gene$TSS,end=hg19Gene$TSS),
+                       strand=ifelse(hg19Gene$Strand==1,"+","-"),
+                       EnsemblID=hg19Gene$ensembl_gene_id)
+hg19TSS
+```
+
+
+4. Create a GRanges object of human promoters with TSS ± 1000bp (using the GRanges object created in Q1). Tip: Read the documentation for `promoters` function.
+-----------------------------------------------------------------------
+```{r, echo=TRUE, eval=TRUE, message=FALSE, collapse=TRUE}
+hg19Promoters <- promoters(hg19Gene.GR,upstream=1000,downstream=1000)
+hg19Promoters
+```
+
+
+5. Import ELF1 binding sites in K562 cell from Encode (ELF1_K562.bed) and create GRanges object. 
+-------------------------------------------------------------------------------
+
+* Import the ELF1 binding sites using `import.bed()` function from `rtracklayer` package and compare it with the above GRanges object
+* Check the distribution of width of ELF1 binding sites using `hist()`
+* Identify promoters (TSS ± 1kb) with ELF1 binding sites `findOverlaps()` and using `%over`
+* Remember BED format uses 0-based coordinates
+
+
+```{r, echo=TRUE, eval=TRUE, message=FALSE, collapse=TRUE}
+library("rtracklayer")
+ELF1 <- read.table("ELF1_K562.bed",sep="\t",header=F)
+ELF1GR <- GRanges(seqnames=ELF1$V1, IRanges(start=ELF1$V2+1,end=ELF1$V3))
+ELF1GR_A <- import.bed("ELF1_K562.bed")
+
+# Distribution of width of ELF1 binding sites
+hist(width(ELF1GR))
+
+# ELF1 binding sites overlap with promoters using `findOverlaps`
+hg19Promoters <- promoters(hg19Gene.GR,upstream=1000,downstream=1000)
+Promoter_ELF1_overlap <- findOverlaps(hg19Promoters,ELF1GR,ignore.strand=T)
+Promoter_ELF1_overlap.m <- as.matrix(Promoter_ELF1_overlap)
+
+Promoter_ELF1 <- hg19Promoters[Promoter_ELF1_overlap.m[,"queryHits"],]
+Promoter_ELF1
+
+# ELF1 binding sites overlap with promoters using `%over%`
+ELF1_promoters1 <- hg19Promoters[hg19Promoters %over% ELF1GR]
+ELF1_promoters1
+```
+
+<b>Note the differences in the outputs!</b>
+
+
+6. Import ARmo_1nM peaks from `ChIPseeker` package and visualise distribution of peaks along the chromosomes. Annotate the peaks with respect to genomic regions and visualise the distribution in pie chart and bar chart.
+-------------------------------------------------------------------------------
+
+* Get locations of files using `files <- getSampleFiles()`
+
+```{r, echo=TRUE, eval=TRUE, message=FALSE, collapse=TRUE}
+library(ChIPseeker)
+library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
+
+## Sample files
+files <- getSampleFiles()
+peak <- readPeakFile(files[[4]])
+covplot(peak, weightCol="V5")
+
+# Reading the ARmo_0M peak file
+peakAnno <- annotatePeak(files[[2]], tssRegion=c(-3000, 3000),TxDb=txdb, annoDb="org.Hs.eg.db")
+
+## Pie chart
+plotAnnoPie(peakAnno)
+
+## Bar chart
+plotAnnoBar(peakAnno)
+
+## Plot distance between Peaks and TSS
+plotDistToTSS(peakAnno)
+```
+
+
+

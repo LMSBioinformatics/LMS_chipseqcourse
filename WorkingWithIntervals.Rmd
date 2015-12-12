@@ -1,0 +1,238 @@
+---
+title: "Working with Genomic Intervals"
+author: "MRC CSC Bioinformatics Core Team"
+date: "15-16 December 2015"
+output:
+  ioslides_presentation:
+    css: styles1.css
+  beamer_presentation: default
+  slidy_presentation: default
+transition: faster
+---
+
+## GenomicRanges
+
+- Genomic Ranges provides data structure for efficiently storing genomic coordinates
+    + Collection of genes coordinates
+    + Transcription factor binding sites (ChIP-Seq peaks)
+    + Collection of aligned sequencing reads
+- Builds on top of Interval Ranges (IRanges) package and lays foundation for sequencing analysis. 
+- IRanges are collection of integer interval and GenomicRanges extends IRanges by including chromosome and strand.
+- Provides collection of functions for accessing and manipulating Genomic coordinates
+- Use cases: Identifying TF binding overlap, counting sequencing reads overlap with a gene
+- Main classes: GRanges and GRangesList
+
+
+## Run Length Encoding (Rle)
+- Run length encoding is a data compression technique
+- Efficiently encoding the redundant information
+
+
+```{r, echo=TRUE, eval=TRUE, message=FALSE}
+
+# Orginial vector
+# chr1, chr2, chr2, chr2, chr1, chr1, chr3, chr3
+
+library(GenomicRanges)
+chr <- Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 2))
+chr
+```
+
+The above Rle can be interpreted as a run of length 1 of chr1, followed by run length of 3 of chr2, followed by run length of 2 of chr1 and followed by run length of 2 of chr3
+
+## Constructing GRanges object {.smaller}
+
+GRanges class represents a collection of genomic features with single start and end location on the genome.  GRanges object can be cretated using <b>GRanges</b> function.
+
+```{r, echo=TRUE, eval=TRUE, message=FALSE}
+library("GenomicRanges")
+gr1 <- GRanges(seqnames = Rle(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+               ranges = IRanges(start=11:20, end = 50:59, names = head(letters,10)),
+               strand = Rle(c("-", "+", "-", "+", "-"), c(1,2, 2, 3, 2)),
+               score = 1:10, GC = runif(10,0,1))
+gr1
+```
+
+## Constructing GRanges object {.smaller}
+
+- The coordinates in GRanges are 1-based and left-most (start of a read will always be left-most coordinate of the read regardless of which strand the read aligned to).
+- Additional data stored beyond genomic coordinates (separated by “|”) are called metadata. In our case metadata column contains score and GC content. 
+- Metadata columns are optional and can be extracted from GRanges object using <b>mcols</b> function.
+
+```{r, echo=TRUE, eval=TRUE, message=FALSE}
+mcols(gr1)
+```
+
+## Constructing GRanges object from data frame
+
+```{r, echo=TRUE, eval=TRUE, message=FALSE}
+mm9genes <- read.table("mm9Genes.txt",sep="\t",header=T)
+head(mm9genes)
+mm9genes.GR <- GRanges(seqnames=mm9genes$chr,
+                       ranges=IRanges(start=mm9genes$start,end=mm9genes$end),
+                       strand=mm9genes$strand,
+                       ENSID=mm9genes$ens,
+                       Symbol=mm9genes$Symbol)
+```
+
+Another option: <b>makeGRangesFromDataFrame()</b> 
+
+Converting GRanges object to data frame: <b>as.data.frame(GRanges)</b>
+
+## Constructing GRanges object from data frame
+```{r, echo=TRUE, eval=TRUE, message=FALSE}
+head(mm9genes.GR)
+```
+
+## GenomicRangesList
+
+- To represent hierarchical structured data, ex: Exons in a transcript
+- List-like data structure
+- Each element of the list is GRanges instance
+
+```{r, echo=TRUE, eval=TRUE, message=FALSE}
+gr2 <- GRanges(seqnames = Rle(c("chr1", "chr3","chr2", "chr1", "chr3"), c(1, 2,1, 2, 4)),
+                ranges = IRanges(start=55:64, end = 94:103, names = letters[11:20]),
+                strand = Rle(c("+", "-", "+", "-"), c(1, 4, 3, 2)),
+                score = 1:10, GC = runif(10,0,1))
+
+GRL <- GRangesList("Peak1" = gr1, "Peak2" = gr2)
+```
+
+
+
+## Operations on GenomicRanges
+
+Operations       Functions/methods
+----------      -----------------------------------------
+Accessors       seqnames, start, end, ranges, strand, width, names, mcols, length
+Extraction      GR[i], GRL[[i]], head, tail
+Set operations  reduce, disjoin
+Overlaps        findOverlaps, subsetByOverlaps, countOverlaps, nearest, precede, follow
+Arithmetic      shift, resize, distance, distanceToNearest
+
+
+## Operations on GenomicRanges
+![Operations on GenomicRanges](./GenomicRanges.jpg)
+
+
+## Operations on GenomicRanges
+```{r, echo=TRUE, eval=TRUE, message=FALSE}
+head(ranges(gr1))
+start(gr1)
+width(gr1)
+```
+
+
+## Operations on GenomicRanges {.smaller}
+Subsetting GRanges
+```{r, echo=TRUE, eval=TRUE, message=FALSE}
+gr1[seqnames(gr1)=="chr1"]
+```
+
+Merge overlapping genomic ranges within the same GRanges object
+```{r, echo=TRUE, eval=TRUE, message=FALSE}
+reduce(gr1)
+```
+
+
+## Finding overlapping regions
+
+- One of the common tasks in Sequencing data analysis
+- Ex: Identifying transcription factor binding sites overlap with promoters
+- <b>findOverlaps</b> function finds intervals overlap between two GRanges object.
+- Usage: <b>function(query,subject)</b>
+```{r, echo=TRUE, eval=TRUE, message=FALSE}
+gr1_overlaps <- findOverlaps(gr1,gr2,ignore.strand=F)
+gr1_overlaps
+```
+
+Output of findOverlaps is a 'Hits' object indicating which of the query and subject intervals overlap.
+
+## Finding overlapping regions
+Convert the 'Hits' object to 2 column matrix using <b>as.matrix()</b>. Values in the first column are indices of the query and values in second column are indices of the subject.
+
+```{r, echo=TRUE, eval=TRUE, message=FALSE}
+gr1_overlaps.m <- as.matrix(gr1_overlaps)
+gr1[gr1_overlaps.m[,"queryHits"], ]
+```
+
+## Finding overlapping regions - %in% and %over%
+Alternate ways of find overlapping regions
+```{r, echo=TRUE, eval=TRUE, message=FALSE}
+gr1[gr1 %in% gr2]
+gr1[gr1 %over% gr2]
+```
+Note the difference between %in% and %over%
+
+##  Finding overlapping regions
+Other interesting functions: <b>nearest()</b> and <b>distanceToNearest()</b>
+```{r, echo=TRUE, eval=TRUE, message=FALSE}
+distanceToNearest(gr1,gr2,ignore.strand=F)
+```
+
+## precede, follow
+Find nearest range in gr2 that precede or follow each range in gr1
+```{r, echo=TRUE, eval=TRUE, message=FALSE}
+precede(gr1,gr2)
+follow(gr1,gr2)
+```
+precede, follow returns the index of previous/next ranges. Overlapping ranges are excluded
+
+
+## Set operations
+- Operations between individual ranges within two GRanges object
+- punion, pintersect, psetdiff
+
+Example: Finding number of overlapping bases between TFBS and promoters (using pintersect).
+
+
+## Computing Coverage
+<b>coverage</b> calculates how many ranges overlap with individual positions in the genome. <b>coverage</b> function returns the coverage as Rle instance.
+```{r, echo=TRUE, eval=TRUE, message=FALSE}
+coverage(gr1)
+```
+
+
+## Annotating Peaks
+
+- Associate peaks to promoters / TSS / Enhancers etc
+- Bioconductor Packages: ChIPPeakAnno, ChIPseeker
+- Functional annotation: GREAT (http://bejerano.stanford.edu/), GSEA
+
+## ChIPseeker
+
+Peak Coverage plot across chromosome
+
+```{r, echo=TRUE, eval=TRUE, message=FALSE}
+library(ChIPseeker)
+library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
+
+## Sample files
+files <- getSampleFiles()
+peak <- readPeakFile(files[[4]])
+covplot(peak, weightCol="V5")
+```
+
+
+## Peak Annotation & Visualisation
+```{r, echo=TRUE, eval=TRUE, message=FALSE}
+# Reading the peak file
+peakAnno <- annotatePeak(files[[4]], tssRegion=c(-3000, 3000),TxDb=txdb, annoDb="org.Hs.eg.db")
+```
+
+## Pie chart
+```{r, echo=TRUE, eval=TRUE, message=FALSE}
+plotAnnoPie(peakAnno)
+```
+
+## Bar chart
+```{r, echo=TRUE, eval=TRUE, message=FALSE}
+plotAnnoBar(peakAnno)
+```
+
+## Plot distance between Peaks and TSS
+```{r, echo=TRUE, eval=TRUE, message=FALSE}
+plotDistToTSS(peakAnno)
+```
