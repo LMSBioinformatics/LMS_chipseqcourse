@@ -3,10 +3,33 @@ postPeakCallingQC
 author: 
 date: 
 
+
+Fixing differences in Genome Contig Annotation.2
+========================================================
+Lets check names of contigs in our BAMS
+```{r, echo=T}
+myBL <- ChIPQC:::GetGRanges("/Users/tcarroll/chipseqcourse//referenceData/mm9-blacklist.bed")
+myBL <- renameSeqlevels(myBL,gsub("chr","",seqlevels(myBL)))
+```
+
+We will also need to the same for gene annotation
+========================================================
+We can extract,alter and provide custom feature annotation for ChIPQC
+
+```{r, echo=T}
+mm9Anno <- ChIPQC:::getAnnotation("mm9",AllChr=NULL)
+mm9AnnoNew <- lapply(mm9Anno[-1],
+                  function(x)
+                  renameSeqlevels(x,gsub("chr","",seqlevels(x))
+                       )
+              )
+```
+
 First Slide
 ========================================================
 
 ```{r,echo=FALSE,eval=F,cache=T}
+indexedBams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*sorted\\..*bam$",full.names=T)
 SampleID <- c("myc_ch12_1","myc_ch12_2","myc_Mel_1","myc_Mel_2")
 Tissue <- c(rep("ch12",2),rep("mel",2))
 Treatment <- rep(NA,4)
@@ -22,5 +45,5 @@ ControlID = c("ch12","ch12","ch12","ch12")
 Peaks <- dir("/Users/tcarroll/chipseqcourse/MacsPeaks/",full.names=T)
 PeakCaller <- rep("macs",4)
 ss <- data.frame(SampleID,Tissue,Factor,Treatment,Replicate,Condition,bamReads,bamControl,ControlID,Peaks,PeakCaller)
-
+ChIPQC(ss,annotation=mm9AnnoNew,chromosomes="1,2,3",blacklist=myBL,consensus=F,bCount=F)
 ```

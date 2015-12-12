@@ -64,7 +64,30 @@ fileToGen
  SRAdb
 ========================================================
  The first step in querying SRAdb is to download their schema.
- ```{r, echo=T,cahce=T}
-sqlfile <<- getSRAdbFile()
+ ```{r, echo=T,cache=T}
+ if(!file.exists("/Users/tcarroll/chipseqcourseNew/SRAmetadb.sqlite")){
+  sqlfile <<- getSRAdbFile()
+}else{
+  sqlfile <- "/Users/tcarroll/chipseqcourseNew/SRAmetadb.sqlite"
+}
+sra_con <- dbConnect(SQLite(),sqlfile)
+
  ```
+
+ SRAdb
+========================================================
+Now we can retrieve the location of file we want in fastq format
+ ```{r, echo=T,cache=T}
+ rs = listSRAfile( c(fileToGen), sra_con, fileType = "fastq") 
+ rs$ftp
+ ```
+AnnotationHub
+========================================================
+AnnotationHub provides a nice interface to retrieve data into R
+Try the code below for yourself.
+```{r,eval=F,echo=T,cache=T}
+ah = AnnotationHub()
+display(ah)
+ ```
+
  
