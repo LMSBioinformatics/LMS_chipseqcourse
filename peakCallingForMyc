@@ -1,0 +1,5 @@
+macs2 callpeak -t wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1sorted.bam.bam -c wgEncodeSydhTfbsCh12InputIggmusRawDatasorted.bam.bam -f BAM -n mycch12rep1 --nomodel --extsize 165
+macs2 callpeak -t wgEncodeSydhTfbsCh12CmycIggrabRawDataRep2sorted.bam.bam -c wgEncodeSydhTfbsCh12InputIggmusRawDatasorted.bam.bam -f BAM -n mycch12rep2 --nomodel --extsize 165 &
+macs2 callpeak -t wgEncodeSydhTfbsMelCmycIggrabRawDataRep1sorted.bam.bam -c wgEncodeSydhTfbsCh12InputIggmusRawDatasorted.bam.bam -f BAM -n mycmelrep1 --nomodel --extsize 165 &
+macs2 callpeak -t wgEncodeSydhTfbsMelCmycIggrabRawDataRep2sorted.bam.bam -c wgEncodeSydhTfbsMelInputIggmusRawDatasorted.bam.bam -f BAM -n mycmelrep2 --nomodel --extsize 165 &
+
