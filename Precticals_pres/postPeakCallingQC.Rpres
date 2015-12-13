@@ -1,9 +1,22 @@
 postPeakCallingQC
 ========================================================
-author: 
-date: 
+author: MRC Clinical Sciences Centre
+date:http://mrccsc.github.io/r_course/introToR_Session1.html
+width: 1440
+height: 1100
+autosize: true
+font-import: <link href='http://fonts.googleapis.com/css?family=Slabo+27px' rel='stylesheet' type='text/css'>
+font-family: 'Slabo 27px', serif;
+css:style.css
+First Steps in Alignment
 
 
+QC post peak calling
+========================================================
+```{r, echo=T}
+library(ChIPQC)
+library(GenomeInfoDb)
+```
 Fixing differences in Genome Contig Annotation.2
 ========================================================
 Lets check names of contigs in our BAMS
@@ -25,10 +38,10 @@ mm9AnnoNew <- lapply(mm9Anno[-1],
               )
 ```
 
-First Slide
+Setting up ChIPQC the Diffbind way
 ========================================================
 
-```{r,echo=FALSE,eval=F,cache=T}
+```{r,echo=T,eval=T,cache=T}
 indexedBams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*sorted\\..*bam$",full.names=T)
 SampleID <- c("myc_ch12_1","myc_ch12_2","myc_Mel_1","myc_Mel_2")
 Tissue <- c(rep("ch12",2),rep("mel",2))
@@ -36,54 +49,78 @@ Treatment <- rep(NA,4)
 Condition <- rep(NA,4)
 Factor <- c(rep("myc",2),rep("myc",2))
 Replicate <- c(1,2,1,2)
-bamReads  <- indexedBams[-c(3,4)]
+bamReads  <- indexedBams[-c(3,6)]
 bamControl= c("/Users/tcarroll/chipseqcourse/chipseqDataFQ//wgEncodeSydhTfbsCh12InputIggmusRawDatasorted.bam.bam",
               "/Users/tcarroll/chipseqcourse/chipseqDataFQ//wgEncodeSydhTfbsCh12InputIggmusRawDatasorted.bam.bam",
               "/Users/tcarroll/chipseqcourse/chipseqDataFQ//wgEncodeSydhTfbsMelInputIggmusRawDatasorted.bam.bam",
               "/Users/tcarroll/chipseqcourse/chipseqDataFQ//wgEncodeSydhTfbsMelInputIggmusRawDatasorted.bam.bam")
-ControlID = c("ch12","ch12","ch12","ch12")
+ControlID = c("ch12","ch12","MEL","MEL")
 Peaks <- dir("/Users/tcarroll/chipseqcourse/MacsPeaks/",full.names=T)
 PeakCaller <- rep("macs",4)
+
 ss <- data.frame(SampleID,Tissue,Factor,Treatment,Replicate,Condition,bamReads,bamControl,ControlID,Peaks,PeakCaller)
-res <- ChIPQC(ss,annotation=mm9AnnoNew,chromosomes=c("1","2","3","4"),blacklist=myBL,consensus=F,bCount=F)
+
+
 ```
 
-First Slide
+The sampleSheet and ChIPQC
 ========================================================
+The Samplesheets specifies all the metadata and file information you would need for running ChIPQC
 
-Now we can compare between samples and replicates as we haver a ChIPexperiment object rather than a ChIPQCsample object
+```{r,echo=T,eval=F,cache=T}
+ss
+```
 
-```{r,echo=FALSE,eval=F,cache=T}
+```{r,echo=F,eval=T,cache=F}
+load("../robjects/ChIPQCwithPeaks.RData")
+```
 
+Now we can run ChIPQC from samplesheet. Notice we set **consensus** and **bCount** to false.
+This will stop DiffBind editing our peaks and performing a counting operation.
+
+```{r,echo=T,eval=F,cache=T}
+res <- ChIPQC(ss,annotation=mm9AnnoNew,chromosomes=paste0(1:10),blacklist=myBL,consensus=F,bCount=F)
+```
+Now we can run through same metrics as before such as QCmetrics
+========================================================
+Now we have Frip scores
+
+```{r,echo=T,eval=T,cache=T}
 QCmetrics(res)
 ```
 
-First Slide
+We can plotCC again
 ========================================================
-```{r,echo=FALSE,eval=F,cache=T}
+```{r,echo=FALSE,eval=T,cache=T}
 plotCC(res)
 ```
 
-First Slide
+Get SSD
 ========================================================
-```{r,echo=FALSE,eval=F,cache=T}
+```{r,echo=FALSE,eval=T,cache=T}
 plotSSD(res)
 ```
 
-First Slide
+Plot Reads in genomic regions
 ========================================================
-```{r,echo=FALSE,eval=F,cache=T}
+```{r,echo=FALSE,eval=T,cache=T}
 plotRegi(res)
 ```
 
-First Slide
+Plot reads in Blacklists
 ========================================================
-```{r,echo=FALSE,eval=F,cache=T}
+```{r,echo=FALSE,eval=T,cache=T}
 plotFribl(res)
 ```
 
-First Slide
+And finally plot our Frip scores
 ========================================================
-```{r,echo=FALSE,eval=F,cache=T}
+```{r,echo=FALSE,eval=T,cache=T}
 plotFrip(res)
+```
+
+And finally plot our peak profiles 
+========================================================
+```{r,echo=FALSE,eval=T,cache=T}
+plotPeakProfile(res)
 ```

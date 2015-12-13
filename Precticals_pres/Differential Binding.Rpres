@@ -1,7 +1,15 @@
 Differential Binding
 ========================================================
+author: MRC Clinical Sciences Centre
+date:http://mrccsc.github.io/r_course/introToR_Session1.html
+width: 1440
+height: 1100
+autosize: true
+font-import: <link href='http://fonts.googleapis.com/css?family=Slabo+27px' rel='stylesheet' type='text/css'>
+font-family: 'Slabo 27px', serif;
+css:style.css
 
-First Slide
+Intor to differential binding
 ========================================================
 
 We may expect binding to occur in differing conditions.
@@ -20,20 +28,25 @@ library(ChIPQC)
 library(soGGi)
 library(DESeq2)
 library(GenomicRanges)
+library(Rsubread)
 ```
 
 
 
 Reading in a peak from Macs
 ========================================================
-
+Lets load a single set of peaks fromn Macs calls for Myc in mel and ch12 cell lines.
 ```{r}
 macsPeaks <- dir("/Users/tcarroll/chipseqcourse/MacsPeaks/",full.names=T)
 singlePeakSet <- ChIPQC:::GetGRanges(macsPeaks[1],sep="\t",simplify=T)
+singlePeakSet
 ```
 
 Getting a consensus set
 ========================================================
+To get a consensus set first we "flatten" all peak sets to a single set of peaks occuring in any conditions.
+
+Overlapping peaks are merged
 
 ```{r, echo=TRUE}
 listOfPeaks <- GRangesList(lapply(macsPeaks,function(x)ChIPQC:::GetGRanges(x,sep="\t",simplify=T)))
@@ -62,7 +75,7 @@ limma:::vennCounts(as.data.frame(elementMetadata(flattenedPeaks)))
 ========================================================
 Or we can view as VennDiagram
 
-```{r, echo=TRUE}
+```{r, echo=FALSE}
 limma:::vennDiagram(as.data.frame(elementMetadata(flattenedPeaks)))
 ```
 
@@ -86,6 +99,7 @@ mycMelPeaks_Only <- flattenedPeaks[elementMetadata(flattenedPeaks)$mycmelrep1 + 
 elementMetadata(flattenedPeaks)$mycch12rep1 + 
                  elementMetadata(flattenedPeaks)$mycch12rep2 == 0]
 
+mycMelPeaks_Only
 ```
 
 We can check the Venn to see our numbers add up
@@ -113,8 +127,54 @@ The majority of peaks are around 400 so we will resize all peaks to this for eas
 
 Simple Differential binding
 ========================================================
-Now we can look to see if we need resizing.
+Now we can resize to a sensible size
 ```{r, echo=TRUE}
 PeaksToCount <- resize(highConfidence_Only,width = 400,fix = "center")
-
+PeaksToCount
 ```
+
+Simple Differential binding - Counting
+========================================================
+Now we can count the reads from each sample which land in our high confidence peaks
+
+First we will count one file with featureCounts. The first step is to convert our files to SAF format.
+```{r, echo=TRUE,message=F,warning=F}
+Bams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*sorted\\..*bam$",full.names=T)
+simplePeaksToCount <- ChIPQC:::GetGRanges(highConfidence_Only,simple=T,simplify=T)
+toCount <- data.frame(GeneID = paste0("ID",seq(1,length(simplePeaksToCount))),
+                      Chr=seqnames(simplePeaksToCount),Start=start(simplePeaksToCount),
+                      End=end(simplePeaksToCount),Strand="-")
+out  <- capture.output(myCountTable <- featureCounts(Bams[1],annot.ext = toCount,nthreads=4))
+myCountTable$counts[1:10]
+```
+
+Simple Differential binding - Counting all files
+========================================================
+Now we can use a lapply to count all samples in high confidence peaks
+
+```{r, echo=TRUE}
+
+out <- capture.output(
+  myCountTableList <- lapply(Bams,function(x)
+                               featureCounts(x,annot.ext = toCount,nthreads=4))
+)
+```
+
+have a look at **out** to compare mapping ratres between input and 
+
+Simple Differential binding - Stitching count files together
+========================================================
+Now we can use a lapply to count all samples in high confidence peaks
+
+```{r, echo=TRUE}
+
+countTable <- sapply(myCountTableList,function(x)x$counts)
+rownames(countTable) <- myCountTable$annotation[,1]
+```
+
+Simple Differential binding - A simple DEseq2 DE analysis
+========================================================
+
+
+
+
