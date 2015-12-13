@@ -1,8 +1,13 @@
 Alignments and initial QC
 ========================================================
-author: MRC Bioinformatics Core
-date: 
-
+author: MRC Clinical Sciences Centre
+date:http://mrccsc.github.io/r_course/introToR_Session1.html
+width: 1440
+height: 1100
+autosize: true
+font-import: <link href='http://fonts.googleapis.com/css?family=Slabo+27px' rel='stylesheet' type='text/css'>
+font-family: 'Slabo 27px', serif;
+css:style.css
 First Steps in Alignment
 ========================================================
 
@@ -11,7 +16,7 @@ We have already looked at FastQ files. [FASTQ Description](http://mrccsc.github.
 Fastq is one of the more basic datatypes representing sequence information from your fragment and the quality associated to it
 
 You can find some examples in the directory.
-"/Users/tcarroll/chipseqcourse/chipseqData"
+"/chipseqData/FQs"
 
 First lets load the libraries we will need for this practical
 
@@ -29,6 +34,8 @@ library(GenomicRanges)
 
 A quick peak at FastQ
 ========================================================
+Here we use **FastqSampler()** function to select 10 reads at random.
+This can be useful for QC when you may want 1,000,000 reads instead of all reads.
 
 ```{r part1,WARNING=FALSE, cache=TRUE}
 pathToFQ <- "/Users/tcarroll/chipseqcourse/chipseqDataFQ/"
@@ -42,6 +49,8 @@ ShortReadQ class
 ========================================================
 The ShortReadQ class hold information on each FASTQ as well as general statistics.
 
+Hre we can see the sequence and quality of the read using the **sread()** and **quality()** functions respectively
+
 ```{r, echo=FALSE, dependson=fq}
 sread(fq[1])
 quality(fq[1])
@@ -50,9 +59,12 @@ quality(fq[1])
 
 ShortReadQ Quality
 ========================================================
-The ShortReadQ class also helps in predicting encoding
+The ShortReadQ class also helps in predicting encoding.
+You cqan always compare to [chart](http://en.wikipedia.org/wiki/FASTQ_format) to see which quality scores yours are.
 
-```{r, echo=FALSE}
+R also offers a means to compare your encoding to that of a predefined set.
+
+```{r, echo=T}
 encoding(quality(fq[1]))
 if(
 all(encoding(quality(fq[1])) == encoding(SFastqQuality()))){
@@ -75,6 +87,8 @@ buildindex(basename="PATH_TO_INDEX/mm9_Index",
            reference=ref)
 ```
 
+But this takes a long time so we wont bother here for time constraints.
+
 Starting with alignments. (The aligning)
 =========================================================
 
@@ -82,28 +96,54 @@ Here we simply need to point the subread aligner at the reference genome and fas
 Lets just do one for brevity.
 
 We will use type 1 (for DNA) and stop the search for complex indels
-```{r, echo=T,eval=F}
-prealn <- Sys.time()
-BiocParallel::register(MulticoreParam(workers=3))
+```{r, echo=T,eval=T}
 fastqToAlign <-dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",
                    pattern="*.fastq.gz$",full.names=T)
 index = "/Users/tcarroll/chipseqcourse/referenceData//mm9_index"
 # Get our number of cores
+```
+
+Lets start with one sample
+=========================================================
+```{r, echo=T,eval=T}
+fastqToAlign[1]
+```
+```{r, echo=T,eval=F}
+align(index,x,output_file = gsub("\\.fastq\\.gz$","\\.bam",x),nthreads=4,unique=F,type=1,complexIndels=FALSE,phredOffset=64)))
+```
+
+Important parameters
+=========================================================
+Take a look at **?align** for all the parameters available
+
+Some of the most important here are:
+- nthreads == _Number of threads/cpus to use in aligning_
+- unique == _When TRUE will only report unique reads_
+- phredOffset == *It is important to supply correct Phred scale (although you are warned by subread if it looks wrong)*
+
+Now for all aligning all files in the experiment 
+=========================================================
+```{r, echo=T,eval=F}
+
+BiocParallel::register(MulticoreParam(workers=3))
 
 bplapply(fastqToAlign,function(x)
   capture.output(align(index,x,output_file = gsub("\\.fastq\\.gz$","\\.bam",x),
-                                       nthreads=4,unique=F,type=1,complexIndels=FALSE,phredOffset=64)))
-
-# for(i in 1:length(fastqToAlign)){
-#   align(index,fastqToAlign[i],nthreads=4,type=1,complexIndels=FALSE,phredOffset=64)
-# message("file", i, "aligned")
-# }  
-postaln <- Sys.time()
+  nthreads=4,unique=F,type=1,complexIndels=FALSE,phredOffset=64)))
 ```
 Working with alignments. (Sorting)
 =========================================================
 
 Bam files need to be sorted in order to be used by most programs and properly indexed
+The **sortBam()** function will perform this with a user supplied max memory supplied in the **maxMemory** argument.
+
+```{r, echo=T,eval=F,cache=F}
+
+toSort <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*.bam$",full.names=T)
+sortBam(file=x,destination=gsub("\\.bam","sorted\\.bam",x),maxMemory=1024))
+```
+Now for all sorting all files in the experiment 
+=========================================================
 ```{r, echo=T,eval=F,cache=F}
 
 BiocParallel::register(BiocParallel::MulticoreParam(8))
@@ -112,11 +152,22 @@ bplapply(toSort,function(x) sortBam(file=x,destination=gsub("\\.bam","sorted\\.b
 ```
 
 
-
 Working with alignments. (Indexing)
 =========================================================
 
-Indexing a file allows for random access of only the parts of the files of interest
+Indexing a file allows for random access of only the parts of the files of interest.
+In R we can use **indexBam()** function. 
+```{r, echo=T,eval=F}
+
+toIndex <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*sorted\\.bam",full.names=T)
+indexBam(file=toIndex))
+```
+
+Note that most programs need indexed data. **ChIPQC** will create it if it doesnt exists using same method
+
+Indexing all files
+=========================================================
+
 ```{r, echo=T,eval=F}
 
 BiocParallel::register(BiocParallel::MulticoreParam(8))
@@ -127,7 +178,19 @@ bplapply(toIndex,function(x) indexBam(file=x))
 
 Working with alignments. (Mapping Rates)
 =========================================================
-```{r, echo=T,eval=F}
+
+The **alignmentStats()** function will provide simple statistics on mapping.
+
+```{r, echo=T,eval=T}
+
+indexedBams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*sorted\\..*bam$",full.names=T)
+stats <- alignmentStats(indexedBams[1])
+stats
+```
+
+Working with alignments. (Mapping Rates)
+=========================================================
+```{r, echo=T,eval=T}
 
 BiocParallel::register(BiocParallel::MulticoreParam(8))
 indexedBams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*sorted\\..*bam$",full.names=T)
@@ -145,6 +208,7 @@ Retrieving global information with RSamtools.
 ===========================
 
 The Rsamtools library is the main library to deal with BAM files.
+Creating a **BamFile** object is easy and will allow finer control in the future over simply supplying strings of BAM file names.
 
 ```{r, echo=F,eval=T}
 indexedBams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*sorted\\..*bam$",full.names=T)
@@ -156,8 +220,10 @@ bamToRead
 ```
 
 
-
+Bam Headers 
 ===========================
+</br>
+
 The BAM header contains information on contigs aligned to and potentially programs used.
 
 ```{r, echo=F,eval=T}
@@ -169,13 +235,13 @@ bamToRead <- BamFile(indexedBams[1])
 targets <- scanBamHeader(bamToRead)$targets
 ```
 ***
-```{r, echo=T,eval=T}
+```{r, echo=F,eval=T}
 knitr:::kable(data.frame(Contigs=names(targets),Lengths=targets,row.names = NULL))
 ```
 
 Retrieving global information with RSamtools.
 ===========================
-The BAM header contains information on contigs aligned to and potentially programs used.
+Here we have sort order description, version and programs version used to align
 
 ```{r, echo=F,eval=T}
 indexedBams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*sorted\\..*bam$",full.names=T)
@@ -191,13 +257,18 @@ scanBamHeader(bamToRead)$text["@PG"]
 Getting the alignments
 ===========================
 
+We can read in BAM file to R thorugh many methods. 
+One of the most common is **readGAlignment()** function
+
 ```{r, echo=T,eval=T,message=F,warning=F,cache=T}
 temp <- readGAlignments(bamToRead)
+length(temp)
 temp[1]
 ```
 
 Converting to GRanges
 ===========================
+GenomicAlignments can be easily converted to GRanges to remove information we are not interested in for ChIP-seq.
 
 ```{r, echo=T,eval=T,message=F,warning=F,dependsOn=temp}
 GRanges(temp[1])
@@ -205,6 +276,10 @@ GRanges(temp[1])
 
 Finer control with ScanBamParam
 ===========
+The ScanBamParam() and it's related functions scanBamFlag() and scanBamWhich() allow much finer control over reading from Bam files. 
+
+Here we select reads on negative strand
+
 ```{r, echo=T,eval=T,message=F,warning=F,cache=T}
 
 temp <- readGAlignments(bamToRead,
@@ -212,8 +287,7 @@ temp <- readGAlignments(bamToRead,
 ```
 
 ====
-<font size="2">
+
 ```{r, echo=T,eval=T,message=F,warning=F,cache=T,dependsOn=temp}
 temp[1]
 ```
-</font> 

@@ -1,14 +1,26 @@
 GettingData
 ========================================================
+author: MRC Clinical Sciences Centre
+date:http://mrccsc.github.io/r_course/introToR_Session1.html
+width: 1440
+height: 1100
+autosize: true
+font-import: <link href='http://fonts.googleapis.com/css?family=Slabo+27px' rel='stylesheet' type='text/css'>
+font-family: 'Slabo 27px', serif;
+css:style.css
 
 As we saw there are many places to grab data from.
 ========================================================
 
-Some of the most popular are GEO, SRA and ENA.
+Some of the most popular are :-
+- [GEO](http://www.ncbi.nlm.nih.gov/geo/)
+- [SRA](http://www.ncbi.nlm.nih.gov/sra)
+- [ENA.](http://www.ebi.ac.uk/ena)
+
 
 Interfacing with Repositories in R.
 ========================================================
-Lets load the packages we need, the repo should be obvious.
+Lets load the packages we need, which repositories are associated with which tool should be obvious.
 
 ```{r}
 library(GEOquery)
@@ -17,39 +29,59 @@ library(SRAdb)
 
 GEOquery
 ========================================================
-So lets go look for some samples we have already downloaded
-We are using Encode data so we find some GEOinforma tion [here](http://hgdownload.cse.ucsc.edu/goldenPath/mm9/encodeDCC/wgEncodeSydhTfbs/files.txt)
-
-One we are interest in is GSM912906
+GEOquery allows you to find out information about known GEO id.
+Here is an example of an expression array sample
 
 ```{r, echo=T,cache=T}
-gds <- getGEO("GSM11805")
+gdsArray <- getGEO("GSM11805")
 ```
 
-Have a look at gds object
+```{r, eval=F,echo=T,cache=T}
+show(gdsArray)
+```
+
+Have a look at gds object by typing **show(gds)** and we can see it contains alot of information
+
+
 
 GEOquery
 ========================================================
-So lets go look for some samples we have already downloaded
-We are using Encode data so we find some GEOinforma tion [here](http://hgdownload.cse.ucsc.edu/goldenPath/mm9/encodeDCC/wgEncodeSydhTfbs/files.txt)
+So lets go look for some samples we have already downloaded.
+We are using Encode data so we find some GEOinformation  [here](http://hgdownload.cse.ucsc.edu/goldenPath/mm9/encodeDCC/wgEncodeSydhTfbs/files.txt)
 
 One we are interest in is GSM912906
 
 ```{r, echo=T,cahce=T}
-gds <- getGEO("GSM912906")
+gdsChIP <- getGEO("GSM912906")
 ```
 
-Have a look at gds object
+Have again look at gds object
 
 
 GEOquery
 ========================================================
-GEO has much of the meta data available try meta(gds)
+GEO has much of the meta data available try **meta(gds)**
 
-```{r, echo=T,cahce=T}
-Meta(gds)$supplementary_file_1
-Meta(gds)$supplementary_file_2
-Meta(gds)$supplementary_file_3
+```{r, echo=T,cache=T}
+names(Meta(gdsChIP))
+```
+
+GEOquery
+========================================================
+You can also just see a subsection of information by using **head(Meta(object))**
+Here we show subsection bits of information
+```{r, echo=T,cache=T}
+head(Meta(gdsChIP),3)
+```
+
+GEOquery
+========================================================
+We can see now that this file has 3 supplementary files attached.
+
+```{r, echo=T,cache=T,collapse=T}
+Meta(gdsChIP)$supplementary_file_1
+Meta(gdsChIP)$supplementary_file_2
+Meta(gdsChIP)$supplementary_file_3
 ```
 With the third file pointing to SRA
 
@@ -58,22 +90,21 @@ SRAdb
 SRAdb acts an interface between SRA and ENA
 
 ```{r, echo=T,cache=T}
-fileToGen <- basename(Meta(gds)$supplementary_file_3) 
+fileToGen <- basename(Meta(gdsChIP)$supplementary_file_3) 
 fileToGen
 ```
  SRAdb
 ========================================================
  The first step in querying SRAdb is to download their schema.
- ```{r, echo=T,cache=T}
+ ```{r,eval=F, echo=T,cache=T}
  if(!file.exists("/Users/tcarroll/chipseqcourseNew/SRAmetadb.sqlite")){
   sqlfile <<- getSRAdbFile()
 }else{
   sqlfile <- "/Users/tcarroll/chipseqcourseNew/SRAmetadb.sqlite"
 }
 sra_con <- dbConnect(SQLite(),sqlfile)
-
  ```
-
+You can try this but it takes a few minutes
  SRAdb
 ========================================================
 Now we can retrieve the location of file we want in fastq format
@@ -81,6 +112,16 @@ Now we can retrieve the location of file we want in fastq format
  rs = listSRAfile( c(fileToGen), sra_con, fileType = "fastq") 
  rs$ftp
  ```
+  SRAdb - more info
+========================================================
+Now we can retrieve a little more information about the sample with 
+ ```{r, eval=F,echo=T,cache=T}
+sra_con <- dbConnect(SQLite(),sqlfile) 
+info <- getSRAinfo("SRR478478",sra_con=sra_con)
+info
+
+ ```
+ 
 AnnotationHub
 ========================================================
 AnnotationHub provides a nice interface to retrieve data into R
@@ -88,6 +129,6 @@ Try the code below for yourself.
 ```{r,eval=F,echo=T,cache=T}
 ah = AnnotationHub()
 display(ah)
- ```
-
+```
+ 
  

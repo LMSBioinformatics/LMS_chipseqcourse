@@ -1,14 +1,20 @@
 Initial ChIP-QC
 ========================================================
-author: 
-date: 
+author: MRC Clinical Sciences Centre
+date:http://mrccsc.github.io/r_course/introToR_Session1.html
+width: 1440
+height: 1100
+autosize: true
+font-import: <link href='http://fonts.googleapis.com/css?family=Slabo+27px' rel='stylesheet' type='text/css'>
+font-family: 'Slabo 27px', serif;
+css:style.css
 
-First Slide
+ChIP-QC
 ========================================================
 
-ChIP-seq data is very noisy and can be variable in specificity and sensitivity depending on the ChIP used.
+ChIP-seq data is very noisy and can be variable in specificity and sensitivity depending on the ChIP antibody used.
 
-Several tools exist in R to allow us to evaluate our ChIP-prior to peak calling and post visualisation in a browser.
+Several tools exist in R to allow us to evaluate our ChIPQC prior to peak calling and post visualisation in a browser.
 
 ChIPQC package
 ========================================================
@@ -36,12 +42,19 @@ The most basic function in ChIPQC is ChIPQCsample() which will gather the inform
 
 Just a BAM file name, genome for annotation and any areas of blacklisted signal.
 
-```{r, echo=T,cache=T}
-setwd(getwd())
-myQC <- ChIPQCsample("/Users/tcarroll/chipseqcourse/chipseqDatabam/wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1sorted.bam.bam",
+```{r, echo=F,eval=T}
+indexedBams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*sorted\\..*bam$",full.names=T)
+```
+
+ChIPQC accecpts a BAM file (with or without index). 
+It is also recommended to provide a genome to test for enrichment in genomic features and a Blacklist.
+
+```{r, echo=T,cache=T,message=F,warning=F}
+indexedBams[1]
+
+myQC <- ChIPQCsample(indexedBams[1],
              annotation="mm9",
-             blacklist = "/Users/tcarroll/chipseqcourse//referenceData/mm9-blacklist.bed",
-             chromosomes=paste0(1:2))
+             blacklist="/Users/tcarroll/chipseqcourse//referenceData/mm9-blacklist.bed",chromosomes=paste0(1:2))
 ```
 
 
@@ -54,14 +67,16 @@ myQC
 Fixing differences in Genome Contig Annotation.
 ========================================================
 Lets check names of contigs in our BAMS
+
 ```{r, echo=T}
-myBam <- BamFile("/Users/tcarroll/chipseqcourse/chipseqDatabam/wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1sorted.bam.bam")
+myBam <- BamFile(indexedBams[1])
 names(scanBamHeader(myBam)$targets)
 ```
 
-Fixing differences in Genome Contig Annotation.2
+Fixing differences in Genome Contig Annotation
 ========================================================
-Lets check names of contigs in our BAMS
+The names in our files start with a chr so we will have to fix these using the **renameSeqlevels** function
+
 ```{r, echo=T}
 myBL <- ChIPQC:::GetGRanges("/Users/tcarroll/chipseqcourse//referenceData/mm9-blacklist.bed")
 myBL <- renameSeqlevels(myBL,gsub("chr","",seqlevels(myBL)))
@@ -71,7 +86,7 @@ We will also need to the same for gene annotation
 ========================================================
 We can extract,alter and provide custom feature annotation for ChIPQC
 
-```{r, echo=T}
+```{r, echo=T,cache=T}
 mm9Anno <- ChIPQC:::getAnnotation("mm9",AllChr=NULL)
 mm9AnnoNew <- lapply(mm9Anno[-1],
                   function(x)
@@ -84,11 +99,15 @@ Lets now provide fixed annotation
 ========================================================
 We can now try with fixed annotation
 
-```{r, echo=T,cache=T}
-myQC <- ChIPQCsample("/Users/tcarroll/chipseqcourse/chipseqDatabam/wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1sorted.bam.bam",
+```{r, echo=F,eval=T}
+indexedBams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*sorted\\..*bam$",full.names=T)
+```
+
+```{r, eval=F,echo=T,cache=T,message=F,warning=F}
+myQC <- ChIPQCsample(indexedBams[1],
              annotation=mm9AnnoNew,
              blacklist = myBL,
-             chromosomes=paste0(1:2)
+             chromosomes=paste0(1:10)
              )
 
 ```
@@ -96,12 +115,17 @@ myQC <- ChIPQCsample("/Users/tcarroll/chipseqcourse/chipseqDatabam/wgEncodeSydhT
 These results look better
 ========================================================
 ```{r, echo=T,cache=T}
+load("../robjects/singleSampleQC.RData")
+```
+
+```{r, echo=T,cache=T}
 myQC
 ```
 
 Some useful plots
 =========================================================
-In the CC plot we see fragment length and background peak.
+In the CC plot we see fragment length and artefact peak. Note in this samnple the artefact peak is higher then fragment length peak
+
 ```{r, echo=T,cache=T}
 p <- plotCC(myQC)
 p$layers[[2]] <- NULL
@@ -111,8 +135,9 @@ p
 Some more useful plots
 =========================================================
 By comparing SSD before and after Blacklisting we get an understanding of artefact and remaining signal.
+
 ```{r, echo=T,cache=T}
-plotSSD(myQC)+xlim(0,50)
+plotSSD(myQC)+xlim(0,10)
 ```
 
 Some more useful plots
@@ -123,32 +148,44 @@ By using Regi plot we can see where the distribution of signal in our features.
 plotRegi(myQC)
 ```
 
-
-
-
 Running across an experiment
 =========================================================
 Lets set up a ChIPQC evaluation across all the experiments
 
 
-```{r, echo=FALSE,cache=T,eval=T}
+```{r,eval=F, echo=FALSE,cache=T,eval=F}
 
 myRes <- bplapply(indexedBams,function(x)
   ChIPQCsample(x,
              annotation=mm9AnnoNew,
              blacklist = myBL,
-             chromosomes=NULL
+             chromosomes=paste0(1:10)
              ))
 ```
 
 Running across an experiment
 =========================================================
-
-Now we can get the mean fragmentlength across samples for peak calling on my peaks
-
-```{r, echo=FALSE,cache=T,eval=T}
+```{r, echo=T,cache=T,eval=T}
 
 mean(unlist(lapply(myRes,fragmentlength))
 ```
+
+Now we can get the mean fragmentlength across samples for peak calling on my peaks
+
+```{r, echo=T,cache=T,eval=T}
+
+mean(unlist(lapply(myRes,fragmentlength))
+```
+
+Plotting across an entire experiment
+=========================================================
+
+```{r, echo=FALSE,cache=T,eval=T}
+
+p <- plotCC(myRes)
+p$layers[[2]] <- NULL
+p
+```
+     
      
 We will come back to QC when we have some peaks.
