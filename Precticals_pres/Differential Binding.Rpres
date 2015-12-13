@@ -180,13 +180,17 @@ save(countTable,file="../robjects/MycCounts.RData")
 
 Simple Differential binding - A simple DEseq2 DE analysis
 ========================================================
+Here we set up a DEseq2 object much as you would for RNAseq.
+We define the conditions in **colData** as CellLines for Mel and ch12
+
+This will identify any significant differennces in Myc binding between the cell lines.
 
 ```{r, echo=FALSE,eval=T}
 
 load("../robjects/MycCounts.RData")
 ```
 
-```{r, echo=FALSE}
+```{r, echo=TRUE}
 library("DESeq2")
 
 colData <- data.frame(SampleName=colnames(countTable[,-c(3,6)]),CellLine=c("ch12","ch12","mel","mel"))
@@ -194,9 +198,10 @@ dds <- DESeqDataSetFromMatrix(countData = countTable[,-c(3,6)],
                               colData = colData,
                               design = ~ CellLine)
 dds <- DESeq(dds)
-testcellline <- results(dds, contrast=c("Genotype","ch12","mel"))
-
-
+testcellline <- results(dds, contrast=c("CellLine","ch12","mel"))
+testcellline <- testcellline[order(testcellline$pvalue),]
+as.data.frame(test)
+```
 
 
 
