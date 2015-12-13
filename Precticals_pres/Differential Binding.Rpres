@@ -166,14 +166,38 @@ Simple Differential binding - Stitching count files together
 ========================================================
 Now we can use a lapply to count all samples in high confidence peaks
 
-```{r, echo=TRUE}
+```{r, echo=TRUE,eval=FALSE}
 
 countTable <- sapply(myCountTableList,function(x)x$counts)
 rownames(countTable) <- myCountTable$annotation[,1]
+colnames(countTable) <- c("ch12myc","ch12myc","ch12input","melmyc","melmyc","meinput")
+```
+
+```{r, echo=FALSE,eval=FALSE}
+
+save(countTable,file="../robjects/MycCounts.RData")
 ```
 
 Simple Differential binding - A simple DEseq2 DE analysis
 ========================================================
+
+```{r, echo=FALSE,eval=T}
+
+load("../robjects/MycCounts.RData")
+```
+
+```{r, echo=FALSE}
+library("DESeq2")
+
+colData <- data.frame(SampleName=colnames(countTable[,-c(3,6)]),CellLine=c("ch12","ch12","mel","mel"))
+dds <- DESeqDataSetFromMatrix(countData = countTable[,-c(3,6)],
+                              colData = colData,
+                              design = ~ CellLine)
+dds <- DESeq(dds)
+testcellline <- results(dds, contrast=c("Genotype","ch12","mel"))
+
+
+
 
 
 

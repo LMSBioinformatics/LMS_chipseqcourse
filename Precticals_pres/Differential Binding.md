@@ -325,7 +325,10 @@ Now we can use a lapply to count all samples in high confidence peaks
 ```r
 countTable <- sapply(myCountTableList,function(x)x$counts)
 rownames(countTable) <- myCountTable$annotation[,1]
+colnames(countTable) <- c("ch12myc","ch12myc","ch12input","melmyc","melmyc","meinput")
 ```
+
+
 
 Simple Differential binding - A simple DEseq2 DE analysis
 ========================================================
@@ -333,3 +336,8 @@ Simple Differential binding - A simple DEseq2 DE analysis
 
 
 
+
+```
+Error in cleanContrast(object, contrast, expanded = isExpanded, listValues = listValues,  : 
+  Genotype should be the name of a factor in the colData of the DESeqDataSet
+```
