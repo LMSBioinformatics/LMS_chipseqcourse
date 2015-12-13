@@ -28,6 +28,7 @@ Loading packages
 First lets load the packages we need
 
 ```{r, echo=T}
+library(DiffBind)
 library(ChIPQC)
 library(GenomeInfoDb)
 library(BiocParallel)
@@ -180,9 +181,14 @@ Plotting across an entire experiment
 =========================================================
 You should have an object loaded called ss
 
+```{r, echo=T,cache=T,eval=F}
+myRes2 <- ChIPQC(ss,samples=myRes)
+```
+```{r, echo=F,cache=T,eval=T}
+load("../robjects/withoutPeaksMacs.RData")
+myRes2 <- temp
 ```{r, echo=T,cache=T,eval=T}
-ChIPQC(ss,samples=myRes)
-p <- plotCC(myRes)
+p <- plotCC(myRes2)
 p$layers[[2]] <- NULL
 p
 ```
