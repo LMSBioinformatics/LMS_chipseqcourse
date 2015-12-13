@@ -324,7 +324,7 @@ Now we can use a lapply to count all samples in high confidence peaks
 
 ```r
 countTable <- sapply(myCountTableList,function(x)x$counts)
-rownames(countTable) <- myCountTable$annotation[,1]
+rownames(countTable) <- paste0(toCount[,1],"-",toCount[,2],";",toCount[,3],"-",toCount[,4])
 colnames(countTable) <- c("ch12myc","ch12myc","ch12input","melmyc","melmyc","meinput")
 ```
 
@@ -332,12 +332,73 @@ colnames(countTable) <- c("ch12myc","ch12myc","ch12input","melmyc","melmyc","mei
 
 Simple Differential binding - A simple DEseq2 DE analysis
 ========================================================
+Here we set up a DEseq2 object much as you would for RNAseq.
+We define the conditions in **colData** as CellLines for Mel and ch12
+
+This will identify any significant differennces in Myc binding between the cell lines.
 
 
 
+
+```r
+library("DESeq2")
+
+colData <- data.frame(SampleName=colnames(countTable[,-c(3,6)]),CellLine=c("ch12","ch12","mel","mel"))
+dds <- DESeqDataSetFromMatrix(countData = countTable[,-c(3,6)],
+                              colData = colData,
+                              design = ~ CellLine)
+
+dds <- DESeq(dds)
+testcellline <- results(dds, contrast=c("CellLine","ch12","mel"))
+```
+
+Simple Differential binding - Creating the DE GRanges
+========================================================
+Here we set up a DEseq2 object much as you would for RNAseq.
+We define the conditions in **colData** as CellLines for Mel and ch12
+
+This will identify any significant differennces in Myc binding between the cell lines.
 
 
 ```
-Error in cleanContrast(object, contrast, expanded = isExpanded, listValues = listValues,  : 
-  Genotype should be the name of a factor in the colData of the DESeqDataSet
+GRanges object with 5 ranges and 6 metadata columns:
+                               seqnames               ranges strand |
+                                  <Rle>            <IRanges>  <Rle> |
+   ID56199-7;89919508-89920626        7 [89919508, 89920626]      * |
+   ID30011-1;85105988-85106691        1 [85105988, 85106691]      * |
+  ID76925-19;59423707-59425963       19 [59423707, 59425963]      * |
+     ID708-1;87501574-87501980        1 [87501574, 87501980]      * |
+  ID11282-16;19200831-19201519       16 [19200831, 19201519]      * |
+                                      .baseMean   .log2FoldChange
+                                      <numeric>         <numeric>
+   ID56199-7;89919508-89920626 140.344671573999  4.32881227533584
+   ID30011-1;85105988-85106691 125.342227039855  3.70121016520507
+  ID76925-19;59423707-59425963 79.3766681720876 -3.96774254614156
+     ID708-1;87501574-87501980 74.4403339301691  3.68402408361114
+  ID11282-16;19200831-19201519 48.4553188125988  5.67427660671764
+                                          .lfcSE             .stat
+                                       <numeric>         <numeric>
+   ID56199-7;89919508-89920626 0.446648986778403  9.69175438314272
+   ID30011-1;85105988-85106691 0.385564230862693  9.59946454816018
+  ID76925-19;59423707-59425963  0.50510911835174 -7.85521860917697
+     ID708-1;87501574-87501980 0.481723916151496  7.64758393779344
+  ID11282-16;19200831-19201519 0.813707120387948    6.973364819534
+                                            .pvalue                .padj
+                                          <numeric>            <numeric>
+   ID56199-7;89919508-89920626 3.26864986183481e-22 1.11114483403213e-17
+   ID30011-1;85105988-85106691 8.03608017724777e-22  1.3658925477268e-17
+  ID76925-19;59423707-59425963 3.99075478757085e-15 4.52205727495612e-11
+     ID708-1;87501574-87501980 2.04790568309963e-14 1.74041264478222e-10
+  ID11282-16;19200831-19201519 3.09448776794783e-12 2.10388034367237e-08
+  -------
+  seqinfo: 22 sequences from an unspecified genome; no seqlengths
 ```
+
+
+
+
+
+
+
+
+
