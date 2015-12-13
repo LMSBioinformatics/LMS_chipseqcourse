@@ -169,13 +169,13 @@ Now we can use a lapply to count all samples in high confidence peaks
 ```{r, echo=TRUE,eval=FALSE}
 
 countTable <- sapply(myCountTableList,function(x)x$counts)
-rownames(countTable) <- myCountTable$annotation[,1]
+rownames(countTable) <- paste0(toCount[,1],"-",toCount[,2],";",toCount[,3],"-",toCount[,4])
 colnames(countTable) <- c("ch12myc","ch12myc","ch12input","melmyc","melmyc","meinput")
 ```
 
 ```{r, echo=FALSE,eval=FALSE}
 
-save(countTable,file="../robjects/MycCounts.RData")
+save(countTable,file="robjects/MycCounts.RData")
 ```
 
 Simple Differential binding - A simple DEseq2 DE analysis
@@ -187,7 +187,7 @@ This will identify any significant differennces in Myc binding between the cell 
 
 ```{r, echo=FALSE,eval=T}
 
-load("../robjects/MycCounts.RData")
+load("/Users/tcarroll//chipseqcourseNew/robjects/MycCounts.RData")
 ```
 
 ```{r, echo=TRUE}
@@ -197,11 +197,32 @@ colData <- data.frame(SampleName=colnames(countTable[,-c(3,6)]),CellLine=c("ch12
 dds <- DESeqDataSetFromMatrix(countData = countTable[,-c(3,6)],
                               colData = colData,
                               design = ~ CellLine)
+
 dds <- DESeq(dds)
 testcellline <- results(dds, contrast=c("CellLine","ch12","mel"))
-testcellline <- testcellline[order(testcellline$pvalue),]
-as.data.frame(test)
 ```
+
+Simple Differential binding - Creating the DE GRanges
+========================================================
+Here we set up a DEseq2 object much as you would for RNAseq.
+We define the conditions in **colData** as CellLines for Mel and ch12
+
+This will identify any significant differennces in Myc binding between the cell lines.
+
+```{r, echo=FALSE,eval=T}
+
+testcellline <- testcellline[order(testcellline$pvalue),]
+testcellline <- as.data.frame(testcellline)
+resultsMat <- matrix(unlist(strsplit(rownames(testcellline),"-")),byrow=T,ncol=3)
+resultMatPart2 <- matrix(unlist(strsplit(resultsMat[,2],";")),byrow=T,ncol=2)
+DEasGRanges <- GRanges(seqnames=resultMatPart2[,1],IRanges(as.numeric(as.vector(resultMatPart2[,2])),as.numeric(as.vector(resultsMat[,3]))),elementMetadata=testcellline)
+colnames(elementMetadata(DEasGRanges)) <- gsub("elementMetadata","",colnames(elementMetadata(DEasGRanges)))
+DEasGRanges[1:5,]
+```
+
+
+
+
 
 
 
