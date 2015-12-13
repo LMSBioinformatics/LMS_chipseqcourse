@@ -27,7 +27,7 @@ Loading packages
 ===============
 First lets load the packages we need
 
-```{r, echo=FALSE}
+```{r, echo=T}
 library(ChIPQC)
 library(GenomeInfoDb)
 library(BiocParallel)
@@ -163,29 +163,28 @@ myRes <- bplapply(indexedBams,function(x)
              ))
 ```
 
-Running across an experiment
+Plotting across an entire experiment
 =========================================================
-```{r, echo=T,cache=T,eval=T}
+You should have an object loaded called ss. This Samplesheet is required to merge individual ChIPQCsample results.
 
-mean(unlist(lapply(myRes,fragmentlength))
+```{r, echo=FALSE,cache=T,eval=T}
+load("../robjects/SampleSheet.RData")
+load("../robjects/fullResults.RData")
 ```
 
-Now we can get the mean fragmentlength across samples for peak calling on my peaks
-
 ```{r, echo=T,cache=T,eval=T}
-
-mean(unlist(lapply(myRes,fragmentlength))
+ss
 ```
 
 Plotting across an entire experiment
 =========================================================
+You should have an object loaded called ss
 
-```{r, echo=FALSE,cache=T,eval=T}
-
+```{r, echo=T,cache=T,eval=T}
+ChIPQC(ss,samples=myRes)
 p <- plotCC(myRes)
 p$layers[[2]] <- NULL
 p
 ```
-     
      
 We will come back to QC when we have some peaks.
