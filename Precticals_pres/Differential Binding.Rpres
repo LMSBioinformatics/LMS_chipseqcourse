@@ -1,7 +1,6 @@
 Differential Binding
 ========================================================
 author: MRC Clinical Sciences Centre
-date:http://mrccsc.github.io/r_course/introToR_Session1.html
 width: 1440
 height: 1100
 autosize: true
@@ -9,13 +8,13 @@ font-import: <link href='http://fonts.googleapis.com/css?family=Slabo+27px' rel=
 font-family: 'Slabo 27px', serif;
 css:style.css
 
-Intor to differential binding
+Intro to differential binding
 ========================================================
 
 We may expect binding to occur in differing conditions.
-There are tow main ways of looking for differing peaks
-Occupancy analysis 
-Differential binding analysis
+There are two main ways of looking for differing peaks
+-Occupancy analysis 
+-Differential binding analysis
 
 Here we will briefly discuss both
 
@@ -36,8 +35,13 @@ library(Rsubread)
 Reading in a peak from Macs
 ========================================================
 Lets load a single set of peaks fromn Macs calls for Myc in mel and ch12 cell lines.
-```{r}
+```{r,eval=T,echo=F}
 macsPeaks <- dir("/Users/tcarroll/chipseqcourse/MacsPeaks/",full.names=T)
+singlePeakSet <- ChIPQC:::GetGRanges(macsPeaks[1],sep="\t",simplify=T)
+singlePeakSet
+```
+```{r,eval=F,echo=T}
+macsPeaks <- dir("/home/ubuntu/chipseqcourseNew/MacsPeaks/",full.names=T)
 singlePeakSet <- ChIPQC:::GetGRanges(macsPeaks[1],sep="\t",simplify=T)
 singlePeakSet
 ```
@@ -48,9 +52,9 @@ To get a consensus set first we "flatten" all peak sets to a single set of peaks
 
 Overlapping peaks are merged
 
-```{r, echo=TRUE}
+```{r, echo=TRUE,cache=T}
 listOfPeaks <- GRangesList(lapply(macsPeaks,function(x)ChIPQC:::GetGRanges(x,sep="\t",simplify=T)))
-flattenedPeaks <- unlist(listOfPeaks)
+flattenedPeaks <- reduce(unlist(listOfPeaks))
 ```
 
 The next step would be to identify when samples shared peaks
@@ -59,8 +63,12 @@ The next step would be to identify when samples shared peaks
 matOfOverlaps <- sapply(listOfPeaks,function(x)
 (flattenedPeaks %over% x)+0
 )
+
 colnames(matOfOverlaps) <- basename(gsub("_peaks\\.xls","",macsPeaks))
+
+
 elementMetadata(flattenedPeaks) <- matOfOverlaps
+
 flattenedPeaks[1:2,]
 ```
 
@@ -99,7 +107,7 @@ mycMelPeaks_Only <- flattenedPeaks[elementMetadata(flattenedPeaks)$mycmelrep1 + 
 elementMetadata(flattenedPeaks)$mycch12rep1 + 
                  elementMetadata(flattenedPeaks)$mycch12rep2 == 0]
 
-mycMelPeaks_Only
+mycMelPeaks_Only[1,]
 ```
 
 We can check the Venn to see our numbers add up
@@ -130,7 +138,7 @@ Simple Differential binding
 Now we can resize to a sensible size
 ```{r, echo=TRUE}
 PeaksToCount <- resize(highConfidence_Only,width = 400,fix = "center")
-PeaksToCount
+PeaksToCount[1:2,]
 ```
 
 Simple Differential binding - Counting
@@ -138,15 +146,34 @@ Simple Differential binding - Counting
 Now we can count the reads from each sample which land in our high confidence peaks
 
 First we will count one file with featureCounts. The first step is to convert our files to SAF format.
-```{r, echo=TRUE,message=F,warning=F}
+
+```{r,eval=T,echo=FALSE,message=F,warning=F}
 Bams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*sorted\\..*bam$",full.names=T)
-simplePeaksToCount <- ChIPQC:::GetGRanges(highConfidence_Only,simple=T,simplify=T)
+simplePeaksToCount <- ChIPQC:::GetGRanges(PeaksToCount,simple=T,simplify=T)
+
+
 toCount <- data.frame(GeneID = paste0("ID",seq(1,length(simplePeaksToCount))),
                       Chr=seqnames(simplePeaksToCount),Start=start(simplePeaksToCount),
                       End=end(simplePeaksToCount),Strand="-")
 out  <- capture.output(myCountTable <- featureCounts(Bams[1],annot.ext = toCount,nthreads=4))
 myCountTable$counts[1:10]
 ```
+
+```{r,eval=F,echo=TRUE,message=F,warning=F}
+Bams <- dir("/home/ubuntu//chipseqcourseData/sortedbams/",pattern="*sorted\\..*bam$",full.names=T)
+simplePeaksToCount <- ChIPQC:::GetGRanges(PeaksToCount,simple=T,simplify=T)
+
+
+toCount <- data.frame(GeneID = paste0("ID",seq(1,length(simplePeaksToCount))),
+                      Chr=seqnames(simplePeaksToCount),Start=start(simplePeaksToCount),
+                      End=end(simplePeaksToCount),Strand="-")
+
+out  <- capture.output(myCountTable <- featureCounts(Bams[1],annot.ext = toCount,nthreads=4))
+
+myCountTable$counts[1:10]
+```
+
+
 
 Simple Differential binding - Counting all files
 ========================================================
@@ -160,7 +187,7 @@ out <- capture.output(
 )
 ```
 
-have a look at **out** to compare mapping ratres between input and 
+You could have a look at **out** to compare mapping ratres between input and ChIP 
 
 Simple Differential binding - Stitching count files together
 ========================================================
@@ -187,7 +214,7 @@ This will identify any significant differennces in Myc binding between the cell 
 
 ```{r, echo=FALSE,eval=T}
 
-load("/Users/tcarroll//chipseqcourseNew/robjects/MycCounts.RData")
+load("../robjects/MycCounts.RData")
 ```
 
 ```{r, echo=TRUE}
@@ -202,17 +229,20 @@ dds <- DESeq(dds)
 testcellline <- results(dds, contrast=c("CellLine","ch12","mel"))
 ```
 
-Simple Differential binding - Creating the DE GRanges
+Simple Differential binding - The DE
 ========================================================
-Here we set up a DEseq2 object much as you would for RNAseq.
-We define the conditions in **colData** as CellLines for Mel and ch12
-
-This will identify any significant differennces in Myc binding between the cell lines.
-
-```{r, echo=FALSE,eval=T}
+Here we can see our top changing peaks.
+```{r, echo=T,eval=T}
 
 testcellline <- testcellline[order(testcellline$pvalue),]
 testcellline <- as.data.frame(testcellline)
+testcellline[1:3,]
+```
+
+Simple Differential binding - Creating the DE GRanges
+========================================================
+Now we can make GRanges for ease later
+```{r, echo=T,eval=T}
 resultsMat <- matrix(unlist(strsplit(rownames(testcellline),"-")),byrow=T,ncol=3)
 resultMatPart2 <- matrix(unlist(strsplit(resultsMat[,2],";")),byrow=T,ncol=2)
 DEasGRanges <- GRanges(seqnames=resultMatPart2[,1],IRanges(as.numeric(as.vector(resultMatPart2[,2])),as.numeric(as.vector(resultsMat[,3]))),elementMetadata=testcellline)
@@ -220,7 +250,16 @@ colnames(elementMetadata(DEasGRanges)) <- gsub("elementMetadata","",colnames(ele
 DEasGRanges[1:5,]
 ```
 
+```{r, echo=F,eval=F}
+save(DEasGRanges,file="robjects/DEasGRanges.RData")
+```
 
+sessionInfo
+========================================================
+Now we can make GRanges for ease later
+```{r, echo=T,eval=T}
+sessionInfo()
+```
 
 
 
