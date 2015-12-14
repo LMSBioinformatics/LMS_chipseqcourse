@@ -219,3 +219,14 @@ p
 ```
      
 We will come back to QC when we have some peaks.
+
+
+Session info
+=========================================================
+
+```{r, echo=T,eval=T}
+
+sessionInfo()
+
+```
+
