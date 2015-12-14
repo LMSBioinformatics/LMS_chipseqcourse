@@ -8,7 +8,6 @@ autosize: true
 font-import: <link href='http://fonts.googleapis.com/css?family=Slabo+27px' rel='stylesheet' type='text/css'>
 font-family: 'Slabo 27px', serif;
 css:style.css
-First Steps in Alignment
 
 
 QC post peak calling
@@ -193,6 +192,11 @@ plotFrip(res)
 
 And finally plot our peak profiles 
 ========================================================
+
+```r
+plotPeakProfile(res)
+```
+
 ![plot of chunk unnamed-chunk-20](postPeakCallingQC-figure/unnamed-chunk-20-1.png) 
 
 
