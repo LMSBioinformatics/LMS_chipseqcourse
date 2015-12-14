@@ -1,0 +1,75 @@
+Functional Analysis
+========================================================
+author: MRC Clinical Sciences Centre
+width: 1440
+height: 1100
+autosize: true
+font-import: <link href='http://fonts.googleapis.com/css?family=Slabo+27px' rel='stylesheet' type='text/css'>
+font-family: 'Slabo 27px', serif;
+css:style.css
+
+Brief bit of functional analysis
+========================================================
+
+Here we just wanted to show some simple things you can do with your peaks.
+The choices are endless and will be expanded in future courses.
+
+For now we will cover.
+
+- Enrichment for GO/KEGG functions.
+- Extraction of sequences under peaks for use in MEME-ChIP
+- Scanning the genome with matchPWM
+
+GO/KEGG enrichment
+========================================================
+First lets load our DE peaks from our Differential binding section.
+We should have resummited but lets see for now,
+
+```{r,echo=T,eval=T}
+load("robjects/DEasGRanges.RData")
+DEasGRanges
+```
+
+Now we can select those padj < 0.05 and up/down in Mel
+========================================================
+
+```{r, echo=TRUE,collapse=T}
+UpInMel <- DEasGRanges[DEasGRanges$.padj < 0.05 
+                       & !is.na(DEasGRanges$.padj) 
+                       & DEasGRanges$.log2FoldChange > 0]
+
+DownInMel <- DEasGRanges[DEasGRanges$.padj < 0.05 
+                         & !is.na(DEasGRanges$.padj) 
+                         & DEasGRanges$.log2FoldChange < 0]
+
+length(UpInMel)
+
+length(DownInMel)
+```
+So roughly equal in number of peaks higher or lower to Mel.
+As these our GRanges object we can work with them directly.
+
+Now we need to prepare some annotation. 
+========================================================
+Here we will read annotation from a flat file to get Gene ranges
+In this case we have made a simple option to only keep protein coding genes and longest when selected aong transcripts.
+
+```{r, echo=TRUE,collapse=F}
+
+mm9Genes <- read.delim("robjects/mm9Genes_May2012.txt",sep="\t",h=T)
+mm9GeneRanges <- GRanges(seqnames=paste0("chr",mm9Genes[,3]),ranges=IRanges(start=mm9Genes[,1],end=mm9Genes[,2]),strand=mm9Genes[,4],name=mm9Genes[,5],biotype=mm9Genes[,6])
+
+JustChrOfInterest <- unique(as.vector(seqnames(mm9GeneRanges)))[grep("\\d.|\\d|X|Y",unique(as.vector(seqnames(mm9GeneRanges))))]
+
+mm9PC <- mm9GeneRanges[mm9GeneRanges$biotype == "protein_coding"]
+mm9PC <- mm9PC[order(width(mm9PC),decreasing=T)]
+mm9PC <- mm9PC[match(unique(mm9PC$name),mm9PC$name)]
+mm9PC <- mm9PC[!mm9PC$name == ""]
+mm9PC <- mm9PC[seqnames(mm9PC) %in% JustChrOfInterest]
+mm9PC[1:3]
+
+```
+
+
+
+
