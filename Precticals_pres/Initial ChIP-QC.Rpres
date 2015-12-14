@@ -70,7 +70,7 @@ myQC <- ChIPQCsample(indexedBams[1],
 Strange Results for Reads in Blacklist and features.
 ========================================================
 ```{r, echo=F}
-load("../robjects/singleSampleQC.RData")
+load("../robjects/withoutrightannotation.RData")
 ```
 ```{r, echo=T}
 myQC
