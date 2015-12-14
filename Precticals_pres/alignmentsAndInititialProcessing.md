@@ -38,14 +38,14 @@ A quick peak at FastQ
 Here we use **FastqSampler()** function to select 10 reads at random.
 This can be useful for QC when you may want 1,000,000 reads instead of all reads.
 
-
 ```r
-pathToFQ <- "/Users/tcarroll/chipseqcourse/chipseqDataFQ/"
+pathToFQ <- "/home/ubuntu//chipseqcourseData/FQs"
 fastQ <- "wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1.fastq.gz"
 sampleOfFastQ <- FastqSampler(file.path(pathToFQ,fastQ), 10)
 fq <- yield(sampleOfFastQ)
 fq
 ```
+
 
 ```
 class: ShortReadQ
@@ -62,7 +62,7 @@ Hre we can see the sequence and quality of the read using the **sread()** and **
 ```
   A DNAStringSet instance of length 1
     width seq
-[1]    36 TTGCAAGCTTTCTGTTGTTTTTGTTGTTGTTGTTGA
+[1]    36 AAACTAGTCTCATGAGTGTAGTGTGGTCTCTAAGAT
 ```
 
 ```
@@ -70,7 +70,7 @@ class: SFastqQuality
 quality:
   A BStringSet instance of length 1
     width seq
-[1]    36 a_GUHU_WaUa_T[UQ_T`_aQ`PXXLLFT`[][BB
+[1]    36 _b`abbaabbaabbaaabaababaaaa_baaa^baa
 ```
 
 
@@ -116,9 +116,10 @@ An aligner specific index must be created for this FASTA file
 
 ```r
 ref = "mm9_Fasta.fa"
-buildindex(basename="PATH_TO_INDEX/mm9_Index",
+buildindex(basename="/home/ubuntu/chipseqcourseData/referenceData/mm9_Index",
            reference=ref)
 ```
+
 
 But this takes a long time so we wont bother here for time constraints.
 
@@ -131,25 +132,33 @@ Lets just do one for brevity.
 We will use type 1 (for DNA) and stop the search for complex indels
 
 ```r
-fastqToAlign <-dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",
+fastqToAlign <-dir("/home/ubuntu//chipseqcourseData/FQs/",
                    pattern="*.fastq.gz$",full.names=T)
-index = "/Users/tcarroll/chipseqcourse/referenceData//mm9_index"
+index = "/home/ubuntu/chipseqcourseData/referenceData/mm9_index"
 # Get our number of cores
 ```
+
+
 
 Lets start with one sample
 =========================================================
 
+
 ```r
-fastqToAlign[1]
+basename(fastqToAlign[1])
 ```
 
 ```
-[1] "/Users/tcarroll/chipseqcourse/chipseqDataFQ//wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1.fastq.gz"
+[1] "wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1.fastq.gz"
 ```
 
 ```r
-align(index,x,output_file = gsub("\\.fastq\\.gz$","\\.bam",x),nthreads=4,unique=F,type=1,complexIndels=FALSE,phredOffset=64)))
+align(index,x,output_file = gsub("\\.fastq\\.gz$","\\.bam",x),
+      nthreads=4,
+      unique=F,
+      type=1,
+      complexIndels=FALSE,
+      phredOffset=64)))
 ```
 
 Important parameters
@@ -178,16 +187,21 @@ Bam files need to be sorted in order to be used by most programs and properly in
 The **sortBam()** function will perform this with a user supplied max memory supplied in the **maxMemory** argument.
 
 
+
+
 ```r
-toSort <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*.bam$",full.names=T)
-sortBam(file=x,destination=gsub("\\.bam","sorted\\.bam",x),maxMemory=1024))
+toSort <- dir("/home/ubuntu//chipseqcourseData/sortedbams/",pattern="*.bam$",full.names=T)
+sortBam(file=toSort[1],destination=gsub("\\.bam","sorted\\.bam",x),maxMemory=1024))
 ```
+
 Now for all sorting all files in the experiment 
 =========================================================
 
+
+
 ```r
 BiocParallel::register(BiocParallel::MulticoreParam(8))
-toSort <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*.bam$",full.names=T)
+toSort <- dir("/home/ubuntu//chipseqcourseData/sortedbams/",pattern="*.bam$",full.names=T)
 bplapply(toSort,function(x) sortBam(file=x,destination=gsub("\\.bam","sorted\\.bam",x),maxMemory=1024))
 ```
 
@@ -198,9 +212,10 @@ Working with alignments. (Indexing)
 Indexing a file allows for random access of only the parts of the files of interest.
 In R we can use **indexBam()** function. 
 
+
 ```r
-toIndex <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*sorted\\.bam",full.names=T)
-indexBam(file=toIndex))
+toIndex <- dir("/home/ubuntu//chipseqcourseData/sortedbams/",pattern="*sorted\\.bam",full.names=T)
+indexBam(file=toIndex[1]))
 ```
 
 Note that most programs need indexed data. **ChIPQC** will create it if it doesnt exists using same method
@@ -209,24 +224,19 @@ Indexing all files
 =========================================================
 
 
+
+
 ```r
 BiocParallel::register(BiocParallel::MulticoreParam(8))
-toIndex <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*sorted\\.bam",full.names=T)
+toIndex <- dir("/home/ubuntu//chipseqcourseData/sortedbams/",pattern="*sorted\\.bam",full.names=T)
 bplapply(toIndex,function(x) indexBam(file=x))
 ```
-
 
 Working with alignments. (Mapping Rates)
 =========================================================
 
 The **alignmentStats()** function will provide simple statistics on mapping.
 
-
-```r
-indexedBams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*sorted\\..*bam$",full.names=T)
-stats <- alignmentStats(indexedBams[1])
-stats
-```
 
 ```
                                                          seqlength
@@ -235,15 +245,28 @@ wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1sorted.bam.bam 2654911517
 wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1sorted.bam.bam 18144863  9471721
 ```
 
+
+```r
+indexedBams <- dir("/home/ubuntu//chipseqcourseData/sortedbams/",
+                   pattern="*sorted\\..*bam$",full.names=T)
+stats <- alignmentStats(indexedBams[1])
+stats
+```
+
+
 Working with alignments. (Mapping Rates)
 =========================================================
 
 ```r
 BiocParallel::register(BiocParallel::MulticoreParam(8))
-indexedBams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*sorted\\..*bam$",full.names=T)
+indexedBams <- dir("/home/ubuntu//chipseqcourseData/sortedbams/",
+                   pattern="*sorted\\..*bam$",full.names=T)
+
 stats <- bplapply(indexedBams,function(x) alignmentStats(x))
 stats[[5]]
 ```
+
+
 
 ```
                                                         seqlength   mapped
@@ -251,6 +274,7 @@ wgEncodeSydhTfbsMelCmycIggrabRawDataRep2sorted.bam.bam 2654911517 17840276
                                                        unmapped
 wgEncodeSydhTfbsMelCmycIggrabRawDataRep2sorted.bam.bam 10249532
 ```
+
 
 
 Working with BAM files
@@ -430,4 +454,47 @@ GAlignments object with 1 alignment and 0 metadata columns:
   [1]         0
   -------
   seqinfo: 22 sequences from an unspecified genome
+```
+
+sessioninfo
+========
+
+```r
+sessionInfo()
+```
+
+```
+R version 3.2.2 (2015-08-14)
+Platform: x86_64-apple-darwin13.4.0 (64-bit)
+Running under: OS X 10.11 (El Capitan)
+
+locale:
+[1] en_GB.UTF-8/en_GB.UTF-8/en_GB.UTF-8/C/en_GB.UTF-8/en_GB.UTF-8
+
+attached base packages:
+[1] stats4    parallel  stats     graphics  grDevices utils     datasets 
+[8] methods   base     
+
+other attached packages:
+ [1] QuasR_1.10.0               Rbowtie_1.10.0            
+ [3] Rsubread_1.20.2            ShortRead_1.28.0          
+ [5] GenomicAlignments_1.6.1    SummarizedExperiment_1.0.1
+ [7] Biobase_2.30.0             Rsamtools_1.22.0          
+ [9] GenomicRanges_1.22.1       GenomeInfoDb_1.6.1        
+[11] Biostrings_2.38.2          XVector_0.10.0            
+[13] IRanges_2.4.4              S4Vectors_0.8.3           
+[15] BiocGenerics_0.16.1        BiocParallel_1.4.0        
+[17] knitr_1.11                
+
+loaded via a namespace (and not attached):
+ [1] BiocInstaller_1.20.1   formatR_1.2.1          RColorBrewer_1.1-2    
+ [4] futile.logger_1.4.1    highr_0.5.1            GenomicFeatures_1.22.5
+ [7] bitops_1.0-6           futile.options_1.0.0   GenomicFiles_1.6.0    
+[10] tools_3.2.2            zlibbioc_1.16.0        biomaRt_2.26.1        
+[13] digest_0.6.8           evaluate_0.8           RSQLite_1.0.0         
+[16] lattice_0.20-33        BSgenome_1.38.0        DBI_0.3.1             
+[19] rtracklayer_1.30.1     hwriter_1.3.2          stringr_1.0.0         
+[22] grid_3.2.2             AnnotationDbi_1.32.0   XML_3.98-1.3          
+[25] latticeExtra_0.6-26    lambda.r_1.1.7         magrittr_1.5          
+[28] stringi_1.0-1          RCurl_1.95-4.7        
 ```

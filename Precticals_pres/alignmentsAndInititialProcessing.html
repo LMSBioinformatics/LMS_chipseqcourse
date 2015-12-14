@@ -907,7 +907,7 @@ library(GenomicRanges)
 <p>Here we use <strong>FastqSampler()</strong> function to select 10 reads at random.
 This can be useful for QC when you may want 1,000,000 reads instead of all reads.</p>
 
-<pre><code class="r">pathToFQ &lt;- &quot;/Users/tcarroll/chipseqcourse/chipseqDataFQ/&quot;
+<pre><code class="r">pathToFQ &lt;- &quot;/home/ubuntu//chipseqcourseData/FQs&quot;
 fastQ &lt;- &quot;wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1.fastq.gz&quot;
 sampleOfFastQ &lt;- FastqSampler(file.path(pathToFQ,fastQ), 10)
 fq &lt;- yield(sampleOfFastQ)
@@ -930,14 +930,14 @@ length: 10 reads; width: 36 cycles
 
 <pre><code>  A DNAStringSet instance of length 1
     width seq
-[1]    36 TTGCAAGCTTTCTGTTGTTTTTGTTGTTGTTGTTGA
+[1]    36 AAACTAGTCTCATGAGTGTAGTGTGGTCTCTAAGAT
 </code></pre>
 
 <pre><code>class: SFastqQuality
 quality:
   A BStringSet instance of length 1
     width seq
-[1]    36 a_GUHU_WaUa_T[UQ_T`_aQ`PXXLLFT`[][BB
+[1]    36 _b`abbaabbaabbaaabaababaaaa_baaa^baa
 </code></pre>
 
 </div>
@@ -984,7 +984,7 @@ all(encoding(quality(fq[1])) == encoding(SFastqQuality()))){
 <p>An aligner specific index must be created for this FASTA file</p>
 
 <pre><code class="r">ref = &quot;mm9_Fasta.fa&quot;
-buildindex(basename=&quot;PATH_TO_INDEX/mm9_Index&quot;,
+buildindex(basename=&quot;/home/ubuntu/chipseqcourseData/referenceData/mm9_Index&quot;,
            reference=ref)
 </code></pre>
 
@@ -1001,9 +1001,9 @@ Lets just do one for brevity.</p>
 
 <p>We will use type 1 (for DNA) and stop the search for complex indels</p>
 
-<pre><code class="r">fastqToAlign &lt;-dir(&quot;/Users/tcarroll/chipseqcourse/chipseqDataFQ/&quot;,
+<pre><code class="r">fastqToAlign &lt;-dir(&quot;/home/ubuntu//chipseqcourseData/FQs/&quot;,
                    pattern=&quot;*.fastq.gz$&quot;,full.names=T)
-index = &quot;/Users/tcarroll/chipseqcourse/referenceData//mm9_index&quot;
+index = &quot;/home/ubuntu/chipseqcourseData/referenceData/mm9_index&quot;
 # Get our number of cores
 </code></pre>
 
@@ -1013,13 +1013,18 @@ index = &quot;/Users/tcarroll/chipseqcourse/referenceData//mm9_index&quot;
 <section data-transition="linear" data-transition-speed="default">
 <h3>Lets start with one sample</h3>
 <div class="slideContent" >
-<pre><code class="r">fastqToAlign[1]
+<pre><code class="r">basename(fastqToAlign[1])
 </code></pre>
 
-<pre><code>[1] &quot;/Users/tcarroll/chipseqcourse/chipseqDataFQ//wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1.fastq.gz&quot;
+<pre><code>[1] &quot;wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1.fastq.gz&quot;
 </code></pre>
 
-<pre><code class="r">align(index,x,output_file = gsub(&quot;\\.fastq\\.gz$&quot;,&quot;\\.bam&quot;,x),nthreads=4,unique=F,type=1,complexIndels=FALSE,phredOffset=64)))
+<pre><code class="r">align(index,x,output_file = gsub(&quot;\\.fastq\\.gz$&quot;,&quot;\\.bam&quot;,x),
+      nthreads=4,
+      unique=F,
+      type=1,
+      complexIndels=FALSE,
+      phredOffset=64)))
 </code></pre>
 
 </div>
@@ -1060,8 +1065,8 @@ bplapply(fastqToAlign,function(x)
 <p>Bam files need to be sorted in order to be used by most programs and properly indexed
 The <strong>sortBam()</strong> function will perform this with a user supplied max memory supplied in the <strong>maxMemory</strong> argument.</p>
 
-<pre><code class="r">toSort &lt;- dir(&quot;/Users/tcarroll/chipseqcourse/chipseqDataFQ/&quot;,pattern=&quot;*.bam$&quot;,full.names=T)
-sortBam(file=x,destination=gsub(&quot;\\.bam&quot;,&quot;sorted\\.bam&quot;,x),maxMemory=1024))
+<pre><code class="r">toSort &lt;- dir(&quot;/home/ubuntu//chipseqcourseData/sortedbams/&quot;,pattern=&quot;*.bam$&quot;,full.names=T)
+sortBam(file=toSort[1],destination=gsub(&quot;\\.bam&quot;,&quot;sorted\\.bam&quot;,x),maxMemory=1024))
 </code></pre>
 
 </div>
@@ -1071,7 +1076,7 @@ sortBam(file=x,destination=gsub(&quot;\\.bam&quot;,&quot;sorted\\.bam&quot;,x),m
 <h3>Now for all sorting all files in the experiment </h3>
 <div class="slideContent" >
 <pre><code class="r">BiocParallel::register(BiocParallel::MulticoreParam(8))
-toSort &lt;- dir(&quot;/Users/tcarroll/chipseqcourse/chipseqDataFQ/&quot;,pattern=&quot;*.bam$&quot;,full.names=T)
+toSort &lt;- dir(&quot;/home/ubuntu//chipseqcourseData/sortedbams/&quot;,pattern=&quot;*.bam$&quot;,full.names=T)
 bplapply(toSort,function(x) sortBam(file=x,destination=gsub(&quot;\\.bam&quot;,&quot;sorted\\.bam&quot;,x),maxMemory=1024))
 </code></pre>
 
@@ -1084,8 +1089,8 @@ bplapply(toSort,function(x) sortBam(file=x,destination=gsub(&quot;\\.bam&quot;,&
 <p>Indexing a file allows for random access of only the parts of the files of interest.
 In R we can use <strong>indexBam()</strong> function. </p>
 
-<pre><code class="r">toIndex &lt;- dir(&quot;/Users/tcarroll/chipseqcourse/chipseqDataFQ/&quot;,pattern=&quot;*sorted\\.bam&quot;,full.names=T)
-indexBam(file=toIndex))
+<pre><code class="r">toIndex &lt;- dir(&quot;/home/ubuntu//chipseqcourseData/sortedbams/&quot;,pattern=&quot;*sorted\\.bam&quot;,full.names=T)
+indexBam(file=toIndex[1]))
 </code></pre>
 
 <p>Note that most programs need indexed data. <strong>ChIPQC</strong> will create it if it doesnt exists using same method</p>
@@ -1097,7 +1102,7 @@ indexBam(file=toIndex))
 <h3>Indexing all files</h3>
 <div class="slideContent" >
 <pre><code class="r">BiocParallel::register(BiocParallel::MulticoreParam(8))
-toIndex &lt;- dir(&quot;/Users/tcarroll/chipseqcourse/chipseqDataFQ/&quot;,pattern=&quot;*sorted\\.bam&quot;,full.names=T)
+toIndex &lt;- dir(&quot;/home/ubuntu//chipseqcourseData/sortedbams/&quot;,pattern=&quot;*sorted\\.bam&quot;,full.names=T)
 bplapply(toIndex,function(x) indexBam(file=x))
 </code></pre>
 
@@ -1109,15 +1114,16 @@ bplapply(toIndex,function(x) indexBam(file=x))
 <div class="slideContent" >
 <p>The <strong>alignmentStats()</strong> function will provide simple statistics on mapping.</p>
 
-<pre><code class="r">indexedBams &lt;- dir(&quot;/Users/tcarroll/chipseqcourse/chipseqDataFQ/&quot;,pattern=&quot;*sorted\\..*bam$&quot;,full.names=T)
-stats &lt;- alignmentStats(indexedBams[1])
-stats
-</code></pre>
-
 <pre><code>                                                         seqlength
 wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1sorted.bam.bam 2654911517
                                                           mapped unmapped
 wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1sorted.bam.bam 18144863  9471721
+</code></pre>
+
+<pre><code class="r">indexedBams &lt;- dir(&quot;/home/ubuntu//chipseqcourseData/sortedbams/&quot;,
+                   pattern=&quot;*sorted\\..*bam$&quot;,full.names=T)
+stats &lt;- alignmentStats(indexedBams[1])
+stats
 </code></pre>
 
 </div>
@@ -1127,7 +1133,9 @@ wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1sorted.bam.bam 18144863  9471721
 <h3>Working with alignments. (Mapping Rates)</h3>
 <div class="slideContent" >
 <pre><code class="r">BiocParallel::register(BiocParallel::MulticoreParam(8))
-indexedBams &lt;- dir(&quot;/Users/tcarroll/chipseqcourse/chipseqDataFQ/&quot;,pattern=&quot;*sorted\\..*bam$&quot;,full.names=T)
+indexedBams &lt;- dir(&quot;/home/ubuntu//chipseqcourseData/sortedbams/&quot;,
+                   pattern=&quot;*sorted\\..*bam$&quot;,full.names=T)
+
 stats &lt;- bplapply(indexedBams,function(x) alignmentStats(x))
 stats[[5]]
 </code></pre>
@@ -1388,6 +1396,50 @@ length(temp)
   [1]         0
   -------
   seqinfo: 22 sequences from an unspecified genome
+</code></pre>
+
+</div>
+
+</section>
+<section data-transition="linear" data-transition-speed="default">
+<h3>sessioninfo</h3>
+<div class="slideContent" >
+<pre><code class="r">sessionInfo()
+</code></pre>
+
+<pre><code>R version 3.2.2 (2015-08-14)
+Platform: x86_64-apple-darwin13.4.0 (64-bit)
+Running under: OS X 10.11 (El Capitan)
+
+locale:
+[1] en_GB.UTF-8/en_GB.UTF-8/en_GB.UTF-8/C/en_GB.UTF-8/en_GB.UTF-8
+
+attached base packages:
+[1] stats4    parallel  stats     graphics  grDevices utils     datasets 
+[8] methods   base     
+
+other attached packages:
+ [1] QuasR_1.10.0               Rbowtie_1.10.0            
+ [3] Rsubread_1.20.2            ShortRead_1.28.0          
+ [5] GenomicAlignments_1.6.1    SummarizedExperiment_1.0.1
+ [7] Biobase_2.30.0             Rsamtools_1.22.0          
+ [9] GenomicRanges_1.22.1       GenomeInfoDb_1.6.1        
+[11] Biostrings_2.38.2          XVector_0.10.0            
+[13] IRanges_2.4.4              S4Vectors_0.8.3           
+[15] BiocGenerics_0.16.1        BiocParallel_1.4.0        
+[17] knitr_1.11                
+
+loaded via a namespace (and not attached):
+ [1] BiocInstaller_1.20.1   formatR_1.2.1          RColorBrewer_1.1-2    
+ [4] futile.logger_1.4.1    highr_0.5.1            GenomicFeatures_1.22.5
+ [7] bitops_1.0-6           futile.options_1.0.0   GenomicFiles_1.6.0    
+[10] tools_3.2.2            zlibbioc_1.16.0        biomaRt_2.26.1        
+[13] digest_0.6.8           evaluate_0.8           RSQLite_1.0.0         
+[16] lattice_0.20-33        BSgenome_1.38.0        DBI_0.3.1             
+[19] rtracklayer_1.30.1     hwriter_1.3.2          stringr_1.0.0         
+[22] grid_3.2.2             AnnotationDbi_1.32.0   XML_3.98-1.3          
+[25] latticeExtra_0.6-26    lambda.r_1.1.7         magrittr_1.5          
+[28] stringi_1.0-1          RCurl_1.95-4.7        
 </code></pre>
 
 </div>

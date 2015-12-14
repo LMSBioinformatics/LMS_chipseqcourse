@@ -36,8 +36,15 @@ A quick peak at FastQ
 ========================================================
 Here we use **FastqSampler()** function to select 10 reads at random.
 This can be useful for QC when you may want 1,000,000 reads instead of all reads.
+```{r part2,WARNING=FALSE, eval=F}
+pathToFQ <- "/home/ubuntu//chipseqcourseData/FQs"
+fastQ <- "wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1.fastq.gz"
+sampleOfFastQ <- FastqSampler(file.path(pathToFQ,fastQ), 10)
+fq <- yield(sampleOfFastQ)
+fq
+```
 
-```{r part1,WARNING=FALSE, cache=TRUE}
+```{r part1,WARNING=FALSE, echo=F,cache=TRUE}
 pathToFQ <- "/Users/tcarroll/chipseqcourse/chipseqDataFQ/"
 fastQ <- "wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1.fastq.gz"
 sampleOfFastQ <- FastqSampler(file.path(pathToFQ,fastQ), 10)
@@ -83,9 +90,10 @@ We saw FASTA previously in another [course](http://mrccsc.github.io/genomicForma
 An aligner specific index must be created for this FASTA file
 ```{r, echo=T,eval=F}
 ref = "mm9_Fasta.fa"
-buildindex(basename="PATH_TO_INDEX/mm9_Index",
+buildindex(basename="/home/ubuntu/chipseqcourseData/referenceData/mm9_Index",
            reference=ref)
 ```
+
 
 But this takes a long time so we wont bother here for time constraints.
 
@@ -96,7 +104,14 @@ Here we simply need to point the subread aligner at the reference genome and fas
 Lets just do one for brevity.
 
 We will use type 1 (for DNA) and stop the search for complex indels
-```{r, echo=T,eval=T}
+```{r, echo=T,eval=F}
+fastqToAlign <-dir("/home/ubuntu//chipseqcourseData/FQs/",
+                   pattern="*.fastq.gz$",full.names=T)
+index = "/home/ubuntu/chipseqcourseData/referenceData/mm9_index"
+# Get our number of cores
+```
+
+```{r, echo=F,eval=T}
 fastqToAlign <-dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",
                    pattern="*.fastq.gz$",full.names=T)
 index = "/Users/tcarroll/chipseqcourse/referenceData//mm9_index"
@@ -105,11 +120,17 @@ index = "/Users/tcarroll/chipseqcourse/referenceData//mm9_index"
 
 Lets start with one sample
 =========================================================
+
 ```{r, echo=T,eval=T}
-fastqToAlign[1]
+basename(fastqToAlign[1])
 ```
 ```{r, echo=T,eval=F}
-align(index,x,output_file = gsub("\\.fastq\\.gz$","\\.bam",x),nthreads=4,unique=F,type=1,complexIndels=FALSE,phredOffset=64)))
+align(index,x,output_file = gsub("\\.fastq\\.gz$","\\.bam",x),
+      nthreads=4,
+      unique=F,
+      type=1,
+      complexIndels=FALSE,
+      phredOffset=64)))
 ```
 
 Important parameters
@@ -137,17 +158,31 @@ Working with alignments. (Sorting)
 Bam files need to be sorted in order to be used by most programs and properly indexed
 The **sortBam()** function will perform this with a user supplied max memory supplied in the **maxMemory** argument.
 
-```{r, echo=T,eval=F,cache=F}
+```{r, echo=F,eval=F,cache=F}
 
 toSort <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*.bam$",full.names=T)
 sortBam(file=x,destination=gsub("\\.bam","sorted\\.bam",x),maxMemory=1024))
 ```
+
+```{r, echo=T,eval=F,cache=F}
+
+toSort <- dir("/home/ubuntu//chipseqcourseData/sortedbams/",pattern="*.bam$",full.names=T)
+sortBam(file=toSort[1],destination=gsub("\\.bam","sorted\\.bam",x),maxMemory=1024))
+```
+
 Now for all sorting all files in the experiment 
 =========================================================
-```{r, echo=T,eval=F,cache=F}
+```{r, echo=F,eval=F,cache=F}
 
 BiocParallel::register(BiocParallel::MulticoreParam(8))
 toSort <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*.bam$",full.names=T)
+bplapply(toSort,function(x) sortBam(file=x,destination=gsub("\\.bam","sorted\\.bam",x),maxMemory=1024))
+```
+
+```{r, echo=T,eval=F,cache=F}
+
+BiocParallel::register(BiocParallel::MulticoreParam(8))
+toSort <- dir("/home/ubuntu//chipseqcourseData/sortedbams/",pattern="*.bam$",full.names=T)
 bplapply(toSort,function(x) sortBam(file=x,destination=gsub("\\.bam","sorted\\.bam",x),maxMemory=1024))
 ```
 
@@ -157,10 +192,15 @@ Working with alignments. (Indexing)
 
 Indexing a file allows for random access of only the parts of the files of interest.
 In R we can use **indexBam()** function. 
-```{r, echo=T,eval=F}
+```{r, echo=F,eval=F}
 
 toIndex <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*sorted\\.bam",full.names=T)
 indexBam(file=toIndex))
+```
+```{r, echo=T,eval=F}
+
+toIndex <- dir("/home/ubuntu//chipseqcourseData/sortedbams/",pattern="*sorted\\.bam",full.names=T)
+indexBam(file=toIndex[1]))
 ```
 
 Note that most programs need indexed data. **ChIPQC** will create it if it doesnt exists using same method
@@ -168,35 +208,65 @@ Note that most programs need indexed data. **ChIPQC** will create it if it doesn
 Indexing all files
 =========================================================
 
-```{r, echo=T,eval=F}
+```{r, echo=F,eval=F}
 
 BiocParallel::register(BiocParallel::MulticoreParam(8))
 toIndex <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*sorted\\.bam",full.names=T)
 bplapply(toIndex,function(x) indexBam(file=x))
 ```
 
+```{r, echo=T,eval=F}
+
+BiocParallel::register(BiocParallel::MulticoreParam(8))
+toIndex <- dir("/home/ubuntu//chipseqcourseData/sortedbams/",pattern="*sorted\\.bam",full.names=T)
+bplapply(toIndex,function(x) indexBam(file=x))
+```
 
 Working with alignments. (Mapping Rates)
 =========================================================
 
 The **alignmentStats()** function will provide simple statistics on mapping.
 
-```{r, echo=T,eval=T}
+```{r, echo=F,eval=T}
 
-indexedBams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*sorted\\..*bam$",full.names=T)
+indexedBams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",
+                   pattern="*sorted\\..*bam$",full.names=T)
 stats <- alignmentStats(indexedBams[1])
 stats
 ```
 
+```{r, echo=T,eval=F}
+
+indexedBams <- dir("/home/ubuntu//chipseqcourseData/sortedbams/",
+                   pattern="*sorted\\..*bam$",full.names=T)
+stats <- alignmentStats(indexedBams[1])
+stats
+```
+
+
 Working with alignments. (Mapping Rates)
 =========================================================
-```{r, echo=T,eval=T}
+```{r, echo=T,eval=F}
 
 BiocParallel::register(BiocParallel::MulticoreParam(8))
-indexedBams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*sorted\\..*bam$",full.names=T)
+indexedBams <- dir("/home/ubuntu//chipseqcourseData/sortedbams/",
+                   pattern="*sorted\\..*bam$",full.names=T)
+
 stats <- bplapply(indexedBams,function(x) alignmentStats(x))
 stats[[5]]
 ```
+
+
+```{r, echo=F,eval=T}
+
+BiocParallel::register(BiocParallel::MulticoreParam(8))
+indexedBams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",
+                   pattern="*sorted\\..*bam$",full.names=T)
+
+stats <- bplapply(indexedBams,function(x) alignmentStats(x))
+stats[[5]]
+```
+
 
 
 Working with BAM files
@@ -290,4 +360,10 @@ temp <- readGAlignments(bamToRead,
 
 ```{r, echo=T,eval=T,message=F,warning=F,cache=T,dependsOn=temp}
 temp[1]
+```
+
+sessioninfo
+========
+```{r, echo=T,eval=T,message=F,warning=F,cache=T,dependsOn=temp}
+sessionInfo()
 ```
