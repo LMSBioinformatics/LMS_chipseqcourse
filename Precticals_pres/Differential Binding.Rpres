@@ -83,7 +83,7 @@ limma:::vennCounts(as.data.frame(elementMetadata(flattenedPeaks)))
 ========================================================
 Or we can view as VennDiagram
 
-```{r, echo=FALSE}
+```{r, echo=T,fig.width=20, fig.height=20}
 limma:::vennDiagram(as.data.frame(elementMetadata(flattenedPeaks)))
 ```
 
