@@ -103,7 +103,7 @@ ELF1_promoters1
 <b>Note the differences in the outputs!</b>
 
 
-6. Import ARmo_1nM peaks from `ChIPseeker` package and visualise distribution of peaks along the chromosomes. Annotate the peaks with respect to genomic regions and visualise the distribution in pie chart and bar chart.
+6. Import CBX6_BF peaks from `ChIPseeker` package and visualise distribution of peaks along the chromosomes. Annotate the peaks with respect to genomic regions and visualise the distribution in pie chart and bar chart.
 -------------------------------------------------------------------------------
 
 * Get locations of files using `files <- getSampleFiles()`
@@ -119,7 +119,7 @@ peak <- readPeakFile(files[[4]])
 covplot(peak, weightCol="V5")
 
 # Reading the ARmo_0M peak file
-peakAnno <- annotatePeak(files[[2]], tssRegion=c(-3000, 3000),TxDb=txdb, annoDb="org.Hs.eg.db")
+peakAnno <- annotatePeak(files[[4]], tssRegion=c(-3000, 3000),TxDb=txdb, annoDb="org.Hs.eg.db")
 
 ## Pie chart
 plotAnnoPie(peakAnno)
