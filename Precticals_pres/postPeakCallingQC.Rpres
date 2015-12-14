@@ -25,7 +25,7 @@ myBL <- ChIPQC:::GetGRanges("/home/ubuntu//chipseqcourseData/referencedata/mm9-b
 myBL <- renameSeqlevels(myBL,gsub("chr","",seqlevels(myBL)))
 ```
 
-```{r, echo=T,eval=F}
+```{r, echo=F,eval=T}
 myBL <- ChIPQC:::GetGRanges("/Users/tcarroll/chipseqcourse//referenceData/mm9-blacklist.bed")
 myBL <- renameSeqlevels(myBL,gsub("chr","",seqlevels(myBL)))
 ```

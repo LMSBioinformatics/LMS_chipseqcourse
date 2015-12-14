@@ -28,10 +28,6 @@ myBL <- renameSeqlevels(myBL,gsub("chr","",seqlevels(myBL)))
 ```
 
 
-```r
-myBL <- ChIPQC:::GetGRanges("/Users/tcarroll/chipseqcourse//referenceData/mm9-blacklist.bed")
-myBL <- renameSeqlevels(myBL,gsub("chr","",seqlevels(myBL)))
-```
 
 We will also need to the same for gene annotation
 ========================================================
