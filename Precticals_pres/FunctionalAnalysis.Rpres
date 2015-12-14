@@ -26,7 +26,7 @@ First lets load our DE peaks from our Differential binding section.
 We should have resummited but lets see for now,
 
 ```{r,echo=T,eval=T}
-load("robjects/DEasGRanges.RData")
+load("../robjects/DEasGRanges.RData")
 DEasGRanges
 ```
 
@@ -34,6 +34,9 @@ Now we can select those padj < 0.05 and up/down in Mel
 ========================================================
 
 ```{r, echo=TRUE,collapse=T}
+library(GenomicRanges)
+library(DESeq2)
+
 UpInMel <- DEasGRanges[DEasGRanges$.padj < 0.05 
                        & !is.na(DEasGRanges$.padj) 
                        & DEasGRanges$.log2FoldChange > 0]
@@ -56,7 +59,7 @@ In this case we have made a simple option to only keep protein coding genes and 
 
 ```{r, echo=TRUE,collapse=F}
 
-mm9Genes <- read.delim("robjects/mm9Genes_May2012.txt",sep="\t",h=T)
+mm9Genes <- read.delim("../robjects/mm9Genes_May2012.txt",sep="\t",h=T)
 mm9GeneRanges <- GRanges(seqnames=paste0("chr",mm9Genes[,3]),ranges=IRanges(start=mm9Genes[,1],end=mm9Genes[,2]),strand=mm9Genes[,4],name=mm9Genes[,5],biotype=mm9Genes[,6])
 
 JustChrOfInterest <- unique(as.vector(seqnames(mm9GeneRanges)))[grep("\\d.|\\d|X|Y",unique(as.vector(seqnames(mm9GeneRanges))))]
@@ -68,6 +71,18 @@ mm9PC <- mm9PC[!mm9PC$name == ""]
 mm9PC <- mm9PC[seqnames(mm9PC) %in% JustChrOfInterest]
 mm9PC[1:3]
 
+```
+
+Now we resize our genes around the TSS . 
+========================================================
+
+From an estimation of mean distance to TSS we could identify the optimal size. Here we will select 100bp+/- the TSS.
+
+```{r, echo=TRUE,collapse=F}
+
+mm9Promoters <- promoters(mm9PC,1000,1000)
+mm9PC[1:2,]
+mm9Promoters[1:2,]
 ```
 
 
