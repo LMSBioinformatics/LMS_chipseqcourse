@@ -1,28 +1,42 @@
 Working With Coverage
 ========================================================
+author: MRC Clinical Sciences Centre
+width: 1440
+height: 1100
+autosize: true
+font-import: <link href='http://fonts.googleapis.com/css?family=Slabo+27px' rel='stylesheet' type='text/css'>
+font-family: 'Slabo 27px', serif;
+css:style.css
 
 
-Coverage provides a useful genome wide picture of signal.
 
 
 Coverting BAM files to Coverage
 ========================================================
+Coverage provides a useful genome wide picture of signal.
+
+
 Bam files can easily be converted to coverage like objects with the coverage() function.
 This by default produces a Run Length Encoding of signal over the genome.
 
 ========================================================
-```{r,echo=F}
+```{r,echo=T}
 library(rtracklayer)
 ```
 
+So we use rtracklayer package to work with coverage.
 
 ```{r,eval=T,echo=F}
 path=("/Users/tcarroll/chipseqcourse/chipseqDataFQ/")
+
 ```
 
-```{r,eval=T,echo=T,warnings=T,messages=F,cache=T}
-setwd(path)
-covExample <- coverage("wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1.bam")
+```{r,eval=T,echo=F,warnings=T,messages=F,cache=T}
+covExample <- coverage("/Users/tcarroll/chipseqcourse/chipseqDataFQ/wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1.bam")
+```
+
+```{r,eval=F,echo=T,warnings=T,messages=F,cache=T}
+covExample <- coverage("/home/ubuntu//chipseqcourseData/sortedbams/wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1.bam")
 ```
 
 The RLElist object
@@ -37,10 +51,13 @@ covExample[[1]]
 Arithmetric Operations on RLElist objects
 ========================================================
 Arithmetric operations and running window operations are easily performed
-```{r, echo=T}
+```{r, echo=T,collapse=T}
 cov10 <- covExample+10
 smoothedcov <- runsum(covExample[[10]],50)
 
+cov10[1:10]
+
+smoothedcov[1:10]
 ```
 
 
@@ -59,6 +76,10 @@ We can also get summary statistics
 ```{r, echo=T}
 sdCov <- sd(covExample[[1]])
 meanCov <- mean(covExample[[1]])
+
+sdCov
+
+meanCov
 ```
 
 
@@ -95,16 +116,47 @@ viewSums(myViews)[1:4]
 
 Views also have functions to extract the value and position of max or min signal in a region.
 ```{r, echo=T}
-viewMins(myViews)
-viewMaxs(myViews)
-viewWhichMins(myViews)
-viewWhichMaxs(myViews)
+unique(viewMins(myViews))
+unique(viewMaxs(myViews))
 
 ```
 
-Exporting bigWig -- How about fragment length extension.
+Exporting bigWig
 ========================================================
 Finally we can export our coverage RLElist as a bigWig for visualising in IGV.
-```{r, echo=FALSE,eval=F}
-export.bw(covExample, "myTrialbigWig.bw")
+```{r, echo=T,eval=F}
+export.bw(covExample, "ch12Myc.bw")
+```
+
+Typically we would want to extend fragments first. 
+
+You could do this with resize on the GRanges converted GAlignments and passing the GRanges to export.bw.
+
+Example extension of fragments
+=========================================================
+
+We know from ChIP-qc earlier the predicted fragment length
+
+```{r,eval=F,echo=F,warnings=T,messages=F,cache=T}
+library(rtracklayer)
+covExample <- readGAlignments("/Users/tcarroll/chipseqcourse/chipseqDataFQ/wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1.bam")
+covExample <- GRanges(covExample)
+extended <- resize(covExample,165,fix="start")
+export.bw(extended,con="Extended_ch12Myc.bw")
+```
+
+Out of bounds reads should trimmed automatically
+
+
+```{r,eval=F,echo=T,warnings=T,messages=F,cache=T}
+covExample <- readGAlignments("/home/ubuntu//chipseqcourseData/sortedbams/wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1.bam")
+covExample <- GRanges(covExample)
+extended <- resize(covExample,165,fix="start")
+export.bw(extended,con="Extended_ch12Myc.bw")
+```
+
+sessioninfo
+============
+```{r}
+sessionInfo()
 ```
