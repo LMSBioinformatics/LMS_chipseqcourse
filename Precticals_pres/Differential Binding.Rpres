@@ -34,14 +34,9 @@ library(Rsubread)
 Reading in a peak from Macs
 ========================================================
 Lets load a single set of peaks fromn Macs calls for Myc in mel and ch12 cell lines.
-```{r,eval=F,echo=F}
-macsPeaks <- dir("/Users/tcarroll/chipseqcourse/MacsPeaks/",full.names=T)
-singlePeakSet <- ChIPQC:::GetGRanges(macsPeaks[1],sep="\t",simplify=T)
-singlePeakSet
-```
 
 ```{r,eval=T,echo=T}
-macsPeaks <- dir("../MacsPeaks/",full.names=T)
+macsPeaks <- dir("/home/ubuntu/chipseqcourseNew/MacsPeaks/",full.names=T)
 singlePeakSet <- ChIPQC:::GetGRanges(macsPeaks[1],sep="\t",simplify=T)
 singlePeakSet
 ```
@@ -52,7 +47,8 @@ To get a consensus set first we "flatten" all peak sets to a single set of peaks
 
 Overlapping peaks are merged
 
-```{r, echo=TRUE,cache=T}
+```{r, echo=TRUE,cache=F,eval=T}
+
 listOfPeaks <- GRangesList(lapply(macsPeaks,function(x)ChIPQC:::GetGRanges(x,sep="\t",simplify=T)))
 flattenedPeaks <- reduce(unlist(listOfPeaks))
 ```
@@ -149,7 +145,7 @@ First we will count one file with featureCounts. The first step is to convert ou
 
 
 ```{r,eval=T,echo=TRUE,message=T,warning=F}
-Bams <- dir("../../chipseqcourseData/sortedbams/",pattern="*sorted\\..*bam$",full.names=T)
+Bams <- dir("/home/ubuntu/chipseqcourseData/sortedbams/",pattern="*sorted\\..*bam$",full.names=T)
 
 simplePeaksToCount <- ChIPQC:::GetGRanges(PeaksToCount,simple=T,simplify=T)
 
@@ -170,7 +166,7 @@ Simple Differential binding - Counting all files
 Now we can use a lapply to count all samples in high confidence peaks
 
 ```{r, echo=FALSE}
-if(!file.exists("../robjects/MycCounts.RData")){
+if(!file.exists("/home/ubuntu/chipseqcourseNew/robjects/MycCounts.RData")){
 out <- capture.output(
   myCountTableList <- lapply(Bams,function(x)
                                featureCounts(x,annot.ext = toCount,nthreads=4))
@@ -200,8 +196,8 @@ colnames(countTable) <- c("ch12myc","ch12myc","ch12input","melmyc","melmyc","mei
 ```
 
 ```{r, echo=FALSE,eval=FALSE}
-if(!file.exists("../robjects/MycCounts.RData")){
-save(countTable,file="../robjects/MycCounts.RData")
+if(!file.exists("/home/ubuntu/chipseqcourseNew/robjects/MycCounts.RData")){
+save(countTable,file="/home/ubuntu/chipseqcourseNew/robjects/MycCounts.RData")
 }
 ```
 
@@ -214,7 +210,7 @@ This will identify any significant differennces in Myc binding between the cell 
 
 ```{r, echo=FALSE,eval=T}
 
-load("../robjects/MycCounts.RData")
+load("/home/ubuntu/chipseqcourseNew/robjects/MycCounts.RData")
 ```
 
 ```{r, echo=TRUE}
@@ -252,7 +248,7 @@ DEasGRanges[1:5,]
 
 ```{r, echo=F,eval=F}
 
-save(DEasGRanges,file="robjects/DEasGRanges.RData")
+save(DEasGRanges,file="/home/ubuntu/chipseqcourseNew/robjects/DEasGRanges.RData")
 ```
 
 sessionInfo

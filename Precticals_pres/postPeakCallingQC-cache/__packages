@@ -21,3 +21,4 @@ ChIPQC
 AnnotationDbi
 GenomicFeatures
 TxDb.Mmusculus.UCSC.mm9.knownGene
+BiocInstaller

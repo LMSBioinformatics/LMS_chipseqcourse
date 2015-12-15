@@ -1,7 +1,7 @@
 postPeakCallingQC
 ========================================================
 author: MRC Clinical Sciences Centre
-date:http://mrccsc.github.io/r_course/introToR_Session1.html
+date:http://mrccsc.github.io/
 width: 1440
 height: 1100
 autosize: true
@@ -16,20 +16,16 @@ QC post peak calling
 library(ChIPQC)
 library(GenomeInfoDb)
 ```
-Fixing differences in Genome Contig Annotation.2
+Fixing differences in Genome Contig Annotation again
 ========================================================
 Lets check names of contigs in our BAMS
-```{r, echo=T,eval=F}
-myBL <- ChIPQC:::GetGRanges("/home/ubuntu//chipseqcourseData/referencedata/mm9-blacklist.bed")
+```{r, echo=T,eval=T}
+myBL <- ChIPQC:::GetGRanges("/home/ubuntu/chipseqcourseData/referencedata/mm9-blacklist.bed")
 myBL <- renameSeqlevels(myBL,gsub("chr","",seqlevels(myBL)))
 ```
 
-```{r, echo=F,eval=T}
-myBL <- ChIPQC:::GetGRanges("/Users/tcarroll/chipseqcourse//referenceData/mm9-blacklist.bed")
-myBL <- renameSeqlevels(myBL,gsub("chr","",seqlevels(myBL)))
-```
 
-We will also need to the same for gene annotation
+And again same for gene annotation
 ========================================================
 We can extract,alter and provide custom feature annotation for ChIPQC
 
@@ -46,18 +42,7 @@ Setting up ChIPQC the Diffbind way - Metadata
 ========================================================
 So first we need valid samplenames and some metadata to attach 
 
-```{r,echo=F,eval=T,cache=T}
-indexedBams <- basename(dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*sorted\\..*bam$",full.names=T))
-SampleID <- c("myc_ch12_1","myc_ch12_2","myc_Mel_1","myc_Mel_2")
-Tissue <- c(rep("ch12",2),rep("mel",2))
-Treatment <- rep(NA,4)
-Condition <- rep(NA,4)
-Factor <- c(rep("myc",2),rep("myc",2))
-Replicate <- c(1,2,1,2)
-```
-
- 
-```{r,echo=T,eval=F,cache=T}
+```{r,echo=T,eval=T,cache=T}
 indexedBams <- dir("/home/ubuntu//chipseqcourseData/sortedbams/",
                    pattern="*sorted\\..*bam$",full.names=T)
 
@@ -84,11 +69,12 @@ ControlID = c("ch12","ch12","MEL","MEL")
 Setting up ChIPQC the Diffbind way - The Peak Files
 ========================================================
 
-```{r,echo=F,eval=T,cache=T}
+```{r,echo=T,eval=T,cache=T}
 
 
-Peaks <- basename(dir("/Users/tcarroll//chipseqcourse/MacsPeaks/",full.names=T))
+Peaks <- dir("/home/ubuntu/chipseqcourseNew/MacsPeaks/",full.names=T)
 PeakCaller <- rep("macs",4)
+
 
 ss <- data.frame(SampleID,Tissue,Factor,Treatment,Replicate,
                  Condition,bamReads,
@@ -99,25 +85,12 @@ ss <- data.frame(SampleID,Tissue,Factor,Treatment,Replicate,
 
 ```
 
-```{r,echo=T,eval=F,cache=T}
-
-
-Peaks <- dir("/home/ubuntu//chipseqcourseData/MacsPeaks/",full.names=T)
-PeakCaller <- rep("macs",4)
-
-ss <- data.frame(SampleID,Tissue,Factor,Treatment,Replicate,
-                 Condition,bamReads,
-                 bamControl,ControlID,
-                 Peaks,
-                 PeakCaller)
-
-```
 
 The sampleSheet and ChIPQC
 ========================================================
 The Samplesheets specifies all the metadata and file information you would need for running ChIPQC
 ```{r,echo=F,eval=T,cache=F}
-load("../robjects/ChIPQCwithPeaks.RData")
+load("/home/ubuntu//chipseqcourseNew/robjects/ChIPQCwithPeaks.RData")
 ```
 ```{r,echo=T,eval=T,cache=T}
 ss[1,]
@@ -131,6 +104,10 @@ Now we can run ChIPQC from samplesheet. Notice we set **consensus** and **bCount
 This will stop DiffBind editing our peaks and performing a counting operation.
 
 ```{r,echo=T,eval=F,cache=T}
+register(SerialParam(), default=TRUE)
+#p <- MulticoreParam(workers = 4)
+#register(p)
+
 res <- ChIPQC(ss,annotation=mm9AnnoNew,
               chromosomes=paste0(1:10),
               blacklist=myBL,consensus=F,bCount=F)

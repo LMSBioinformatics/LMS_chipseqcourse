@@ -1,7 +1,7 @@
 postPeakCallingQC
 ========================================================
 author: MRC Clinical Sciences Centre
-date:http://mrccsc.github.io/r_course/introToR_Session1.html
+date:http://mrccsc.github.io/
 width: 1440
 height: 1100
 autosize: true
@@ -17,18 +17,17 @@ QC post peak calling
 library(ChIPQC)
 library(GenomeInfoDb)
 ```
-Fixing differences in Genome Contig Annotation.2
+Fixing differences in Genome Contig Annotation again
 ========================================================
 Lets check names of contigs in our BAMS
 
 ```r
-myBL <- ChIPQC:::GetGRanges("/home/ubuntu//chipseqcourseData/referencedata/mm9-blacklist.bed")
+myBL <- ChIPQC:::GetGRanges("/home/ubuntu/chipseqcourseData/referencedata/mm9-blacklist.bed")
 myBL <- renameSeqlevels(myBL,gsub("chr","",seqlevels(myBL)))
 ```
 
 
-
-We will also need to the same for gene annotation
+And again same for gene annotation
 ========================================================
 We can extract,alter and provide custom feature annotation for ChIPQC
 
@@ -46,9 +45,6 @@ Setting up ChIPQC the Diffbind way - Metadata
 ========================================================
 So first we need valid samplenames and some metadata to attach 
 
-
-
- 
 
 ```r
 indexedBams <- dir("/home/ubuntu//chipseqcourseData/sortedbams/",
@@ -78,11 +74,10 @@ Setting up ChIPQC the Diffbind way - The Peak Files
 ========================================================
 
 
-
-
 ```r
-Peaks <- dir("/home/ubuntu//chipseqcourseData/MacsPeaks/",full.names=T)
+Peaks <- dir("/home/ubuntu/chipseqcourseNew/MacsPeaks/",full.names=T)
 PeakCaller <- rep("macs",4)
+
 
 ss <- data.frame(SampleID,Tissue,Factor,Treatment,Replicate,
                  Condition,bamReads,
@@ -90,6 +85,7 @@ ss <- data.frame(SampleID,Tissue,Factor,Treatment,Replicate,
                  Peaks,
                  PeakCaller)
 ```
+
 
 The sampleSheet and ChIPQC
 ========================================================
@@ -103,14 +99,12 @@ ss[1,]
 ```
     SampleID Tissue Factor Treatment Replicate Condition
 1 myc_ch12_1   ch12    myc        NA         1        NA
-                                                 bamReads
-1 wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1sorted.bam.bam
+                                                                                             bamReads
+1 /home/ubuntu//chipseqcourseData/sortedbams//wgEncodeSydhTfbsCh12CmycIggrabRawDataRep1sorted.bam.bam
                                                                                         bamControl
 1 /home/ubuntu//chipseqcourseData/sortedbams//wgEncodeSydhTfbsCh12InputIggmusRawDatasorted.bam.bam
-  ControlID
-1      ch12
-                                                            Peaks
-1 /Users/tcarroll//chipseqcourse/MacsPeaks//mycch12rep1_peaks.xls
+  ControlID                                                          Peaks
+1      ch12 /home/ubuntu/chipseqcourseNew/MacsPeaks//mycch12rep1_peaks.xls
   PeakCaller
 1       macs
 ```
@@ -122,6 +116,10 @@ This will stop DiffBind editing our peaks and performing a counting operation.
 
 
 ```r
+register(SerialParam(), default=TRUE)
+#p <- MulticoreParam(workers = 4)
+#register(p)
+
 res <- ChIPQC(ss,annotation=mm9AnnoNew,
               chromosomes=paste0(1:10),
               blacklist=myBL,consensus=F,bCount=F)
@@ -152,7 +150,7 @@ We can plotCC again
 plotCC(res)
 ```
 
-![plot of chunk unnamed-chunk-15](postPeakCallingQC-figure/unnamed-chunk-15-1.png) 
+![plot of chunk unnamed-chunk-12](postPeakCallingQC-figure/unnamed-chunk-12-1.png) 
 
 Get SSD
 ========================================================
@@ -161,7 +159,7 @@ Get SSD
 plotSSD(res)
 ```
 
-![plot of chunk unnamed-chunk-16](postPeakCallingQC-figure/unnamed-chunk-16-1.png) 
+![plot of chunk unnamed-chunk-13](postPeakCallingQC-figure/unnamed-chunk-13-1.png) 
 
 Plot Reads in genomic regions
 ========================================================
@@ -170,7 +168,7 @@ Plot Reads in genomic regions
 plotRegi(res)
 ```
 
-![plot of chunk unnamed-chunk-17](postPeakCallingQC-figure/unnamed-chunk-17-1.png) 
+![plot of chunk unnamed-chunk-14](postPeakCallingQC-figure/unnamed-chunk-14-1.png) 
 
 Plot reads in Blacklists
 ========================================================
@@ -179,7 +177,7 @@ Plot reads in Blacklists
 plotFribl(res)
 ```
 
-![plot of chunk unnamed-chunk-18](postPeakCallingQC-figure/unnamed-chunk-18-1.png) 
+![plot of chunk unnamed-chunk-15](postPeakCallingQC-figure/unnamed-chunk-15-1.png) 
 
 And finally plot our Frip scores
 ========================================================
@@ -188,7 +186,7 @@ And finally plot our Frip scores
 plotFrip(res)
 ```
 
-![plot of chunk unnamed-chunk-19](postPeakCallingQC-figure/unnamed-chunk-19-1.png) 
+![plot of chunk unnamed-chunk-16](postPeakCallingQC-figure/unnamed-chunk-16-1.png) 
 
 And finally plot our peak profiles 
 ========================================================
@@ -197,7 +195,7 @@ And finally plot our peak profiles
 plotPeakProfile(res)
 ```
 
-![plot of chunk unnamed-chunk-20](postPeakCallingQC-figure/unnamed-chunk-20-1.png) 
+![plot of chunk unnamed-chunk-17](postPeakCallingQC-figure/unnamed-chunk-17-1.png) 
 
 
 Session Info
@@ -210,11 +208,16 @@ sessionInfo()
 
 ```
 R version 3.2.2 (2015-08-14)
-Platform: x86_64-apple-darwin13.4.0 (64-bit)
-Running under: OS X 10.11 (El Capitan)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 14.04.2 LTS
 
 locale:
-[1] en_GB.UTF-8/en_GB.UTF-8/en_GB.UTF-8/C/en_GB.UTF-8/en_GB.UTF-8
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
 [1] stats4    parallel  stats     graphics  grDevices utils     datasets 
@@ -222,49 +225,50 @@ attached base packages:
 
 other attached packages:
  [1] TxDb.Mmusculus.UCSC.mm9.knownGene_3.2.2
- [2] GenomicFeatures_1.22.5                 
+ [2] GenomicFeatures_1.22.0                 
  [3] AnnotationDbi_1.32.0                   
  [4] ChIPQC_1.6.1                           
- [5] DiffBind_1.16.1                        
+ [5] DiffBind_1.16.0                        
  [6] RSQLite_1.0.0                          
  [7] DBI_0.3.1                              
  [8] locfit_1.5-9.1                         
- [9] GenomicAlignments_1.6.1                
+ [9] GenomicAlignments_1.6.0                
 [10] Rsamtools_1.22.0                       
-[11] Biostrings_2.38.2                      
+[11] Biostrings_2.38.0                      
 [12] XVector_0.10.0                         
-[13] limma_3.26.3                           
-[14] SummarizedExperiment_1.0.1             
+[13] limma_3.26.0                           
+[14] SummarizedExperiment_1.0.0             
 [15] Biobase_2.30.0                         
-[16] GenomicRanges_1.22.1                   
-[17] GenomeInfoDb_1.6.1                     
-[18] IRanges_2.4.4                          
-[19] S4Vectors_0.8.3                        
-[20] BiocGenerics_0.16.1                    
+[16] GenomicRanges_1.22.0                   
+[17] GenomeInfoDb_1.6.0                     
+[18] IRanges_2.4.0                          
+[19] S4Vectors_0.8.0                        
+[20] BiocGenerics_0.16.0                    
 [21] ggplot2_1.0.1                          
 [22] knitr_1.11                             
+[23] BiocInstaller_1.20.0                   
 
 loaded via a namespace (and not attached):
  [1] edgeR_3.12.0           splines_3.2.2          gtools_3.5.0          
  [4] latticeExtra_0.6-26    amap_0.8-14            RBGL_1.46.0           
  [7] Category_2.36.0        lattice_0.20-33        digest_0.6.8          
-[10] RColorBrewer_1.1-2     checkmate_1.6.3        colorspace_1.2-6      
-[13] Matrix_1.2-2           plyr_1.8.3             GSEABase_1.32.0       
-[16] chipseq_1.20.0         XML_3.98-1.3           pheatmap_1.0.7        
-[19] ShortRead_1.28.0       biomaRt_2.26.1         genefilter_1.52.0     
-[22] zlibbioc_1.16.0        xtable_1.8-0           GO.db_3.2.2           
+[10] RColorBrewer_1.1-2     checkmate_1.6.2        colorspace_1.2-6      
+[13] Matrix_1.2-2           plyr_1.8.3             chipseq_1.20.0        
+[16] GSEABase_1.32.0        XML_3.98-1.3           pheatmap_1.0.7        
+[19] ShortRead_1.28.0       biomaRt_2.26.0         genefilter_1.52.0     
+[22] zlibbioc_1.16.0        xtable_1.7-4           GO.db_3.2.2           
 [25] scales_0.3.0           brew_1.0-6             gdata_2.17.0          
-[28] BiocParallel_1.4.0     annotate_1.48.0        proto_0.3-10          
+[28] BiocParallel_1.3.54    annotate_1.48.0        proto_0.3-10          
 [31] survival_2.38-3        magrittr_1.5           evaluate_0.8          
-[34] systemPipeR_1.4.5      fail_1.3               MASS_7.3-45           
+[34] systemPipeR_1.4.0      fail_1.3               MASS_7.3-44           
 [37] gplots_2.17.0          hwriter_1.3.2          GOstats_2.36.0        
 [40] graph_1.48.0           tools_3.2.2            formatR_1.2.1         
 [43] BBmisc_1.9             stringr_1.0.0          sendmailR_1.2-1       
 [46] munsell_0.4.2          lambda.r_1.1.7         caTools_1.17.1        
 [49] futile.logger_1.4.1    grid_3.2.2             RCurl_1.95-4.7        
-[52] rjson_0.2.15           AnnotationForge_1.12.0 bitops_1.0-6          
-[55] base64enc_0.1-3        codetools_0.2-14       gtable_0.1.2          
-[58] reshape2_1.4.1         Nozzle.R1_1.1-1        rtracklayer_1.30.1    
-[61] futile.options_1.0.0   KernSmooth_2.23-15     stringi_1.0-1         
-[64] BatchJobs_1.6          Rcpp_0.12.2           
+[52] rjson_0.2.15           AnnotationForge_1.12.0 labeling_0.3          
+[55] bitops_1.0-6           base64enc_0.1-3        codetools_0.2-14      
+[58] gtable_0.1.2           reshape2_1.4.1         Nozzle.R1_1.1-1       
+[61] rtracklayer_1.30.0     futile.options_1.0.0   KernSmooth_2.23-15    
+[64] stringi_0.5-5          BatchJobs_1.6          Rcpp_0.12.1           
 ```

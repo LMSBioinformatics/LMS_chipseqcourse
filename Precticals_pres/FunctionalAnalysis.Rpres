@@ -30,7 +30,7 @@ library(GenomicRanges)
 library(DESeq2)
 library(goseq)
 
-load("../robjects/DEasGRanges.RData")
+load("/home/ubuntu/chipseqcourseNew/robjects/DEasGRanges.RData")
 DEasGRanges[1,]
 ```
 
@@ -64,7 +64,7 @@ In this case we have made a simple option to only keep protein coding genes and 
 
 ```{r, echo=TRUE,collapse=F}
 
-mm9Genes <- read.delim("../robjects/mm9Genes_May2012.txt",sep="\t",h=T)
+mm9Genes <- read.delim("/home/ubuntu/chipseqcourseNew/robjects/mm9Genes_May2012.txt",sep="\t",h=T)
 mm9GeneRanges <- GRanges(seqnames=paste0("chr",mm9Genes[,3]),ranges=IRanges(start=mm9Genes[,1],end=mm9Genes[,2]),strand=mm9Genes[,4],name=mm9Genes[,5],biotype=mm9Genes[,6])
 
 JustChrOfInterest <- unique(as.vector(seqnames(mm9GeneRanges)))[grep("\\d.|\\d|X|Y",unique(as.vector(seqnames(mm9GeneRanges))))]

@@ -37,9 +37,8 @@ Reading in a peak from Macs
 Lets load a single set of peaks fromn Macs calls for Myc in mel and ch12 cell lines.
 
 
-
 ```r
-macsPeaks <- dir("../MacsPeaks/",full.names=T)
+macsPeaks <- dir("/home/ubuntu/chipseqcourseNew/MacsPeaks/",full.names=T)
 singlePeakSet <- ChIPQC:::GetGRanges(macsPeaks[1],sep="\t",simplify=T)
 singlePeakSet
 ```
@@ -170,7 +169,7 @@ Or we can view as VennDiagram
 limma:::vennDiagram(as.data.frame(elementMetadata(flattenedPeaks)))
 ```
 
-![plot of chunk unnamed-chunk-7](Differential Binding-figure/unnamed-chunk-7-1.png) 
+![plot of chunk unnamed-chunk-6](Differential Binding-figure/unnamed-chunk-6-1.png) 
 
 
 ========================================================
@@ -228,7 +227,7 @@ boxplot(width(highConfidence_Only))
 abline(h=400,col="red")
 ```
 
-![plot of chunk unnamed-chunk-11](Differential Binding-figure/unnamed-chunk-11-1.png) 
+![plot of chunk unnamed-chunk-10](Differential Binding-figure/unnamed-chunk-10-1.png) 
 The majority of peaks are around 400 so we will resize all peaks to this for ease here
 
 Simple Differential binding
@@ -263,7 +262,7 @@ First we will count one file with featureCounts. The first step is to convert ou
 
 
 ```r
-Bams <- dir("../../chipseqcourseData/sortedbams/",pattern="*sorted\\..*bam$",full.names=T)
+Bams <- dir("/home/ubuntu/chipseqcourseData/sortedbams/",pattern="*sorted\\..*bam$",full.names=T)
 
 simplePeaksToCount <- ChIPQC:::GetGRanges(PeaksToCount,simple=T,simplify=T)
 

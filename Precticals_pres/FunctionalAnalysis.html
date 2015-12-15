@@ -904,7 +904,7 @@ We should have resummited but lets see for now,</p>
 library(DESeq2)
 library(goseq)
 
-load(&quot;../robjects/DEasGRanges.RData&quot;)
+load(&quot;/home/ubuntu/chipseqcourseNew/robjects/DEasGRanges.RData&quot;)
 DEasGRanges[1,]
 </code></pre>
 
@@ -962,7 +962,7 @@ As these our GRanges object we can work with them directly.</p>
 <p>Here we will read annotation from a flat file to get Gene ranges
 In this case we have made a simple option to only keep protein coding genes and longest when selected aong transcripts.</p>
 
-<pre><code class="r">mm9Genes &lt;- read.delim(&quot;../robjects/mm9Genes_May2012.txt&quot;,sep=&quot;\t&quot;,h=T)
+<pre><code class="r">mm9Genes &lt;- read.delim(&quot;/home/ubuntu/chipseqcourseNew/robjects/mm9Genes_May2012.txt&quot;,sep=&quot;\t&quot;,h=T)
 mm9GeneRanges &lt;- GRanges(seqnames=paste0(&quot;chr&quot;,mm9Genes[,3]),ranges=IRanges(start=mm9Genes[,1],end=mm9Genes[,2]),strand=mm9Genes[,4],name=mm9Genes[,5],biotype=mm9Genes[,6])
 
 JustChrOfInterest &lt;- unique(as.vector(seqnames(mm9GeneRanges)))[grep(&quot;\\d.|\\d|X|Y&quot;,unique(as.vector(seqnames(mm9GeneRanges))))]
