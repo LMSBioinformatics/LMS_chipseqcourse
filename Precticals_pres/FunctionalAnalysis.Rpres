@@ -26,8 +26,12 @@ First lets load our DE peaks from our Differential binding section.
 We should have resummited but lets see for now,
 
 ```{r,echo=T,eval=T}
+library(GenomicRanges)
+library(DESeq2)
+library(goseq)
+
 load("../robjects/DEasGRanges.RData")
-DEasGRanges
+DEasGRanges[1,]
 ```
 
 Now we can select those padj < 0.05 and up/down in Mel
@@ -35,6 +39,7 @@ Now we can select those padj < 0.05 and up/down in Mel
 
 ```{r, echo=TRUE,collapse=T}
 library(GenomicRanges)
+library(GenomeInfoDb)
 library(DESeq2)
 
 UpInMel <- DEasGRanges[DEasGRanges$.padj < 0.05 
@@ -78,13 +83,187 @@ Now we resize our genes around the TSS .
 
 From an estimation of mean distance to TSS we could identify the optimal size. Here we will select 100bp+/- the TSS.
 
-```{r, echo=TRUE,collapse=F}
+```{r, echo=TRUE,collapse=T}
 
 mm9Promoters <- promoters(mm9PC,1000,1000)
 mm9PC[1:2,]
 mm9Promoters[1:2,]
+mm9Promoters <- renameSeqlevels(mm9Promoters,gsub("chr","",seqlevels(mm9Promoters)))
+mm9Promoters
 ```
 
+And overlap our 2 sets of DE genes with promoters
+========================================================
+
+```{r, echo=TRUE,collapse=F}
+
+GeneswithUpInMel <- mm9Promoters %over% UpInMel + 0
+GeneswithDownInMel <- mm9Promoters %over% DownInMel + 0
+
+names(GeneswithUpInMel) <- names(GeneswithDownInMel) <- mm9Promoters$name
+```
+
+
+Now we have genes associated to our DE peaks we can do some gene set testing
+========================================================
+
+First a little helper function
+
+```{r}
+
+
+library(KEGG.db)
+library(goseq)
+xx <- as.list(KEGGPATHID2NAME)
+temp <- cbind(names(xx),unlist(xx))
+addKeggTogoseq <- function(JX,temp){
+  for(l in 1:nrow(JX)){
+    if(JX[l,1] %in% temp[,1]){
+      JX[l,"term"] <- temp[temp[,1] %in% JX[l,1],2]
+      JX[l,"ontology"] <- "KEGG"
+    }
+    
+  }
+  return(JX)
+}
+```
+
+Now we we will use GOseq for the analysis
+========================================================
+
+And now the testing using goseq
+
+```{r, echo=TRUE,collapse=F}
+
+pwf=nullp(GeneswithUpInMel,"mm9","geneSymbol")
+GeneswithUpInMelEnrich <- goseq(pwf,"mm9","geneSymbol",test.cats=c("GO:BP","GO:MF","KEGG"),method="Hypergeometric")
+pwf=nullp(GeneswithDownInMel,"mm9","geneSymbol")
+GeneswithDownInMelEnrich <- goseq(pwf,"mm9","geneSymbol",test.cats=c("GO:BP","GO:MF","KEGG"),method="Hypergeometric")
+
+GeneswithUpInMelEnrich <- addKeggTogoseq(GeneswithUpInMelEnrich,temp)
+GeneswithDownInMelEnrich <- addKeggTogoseq(GeneswithDownInMelEnrich,temp)
+
+```
+
+
+Results Up in Mel
+========================================================
+
+Genes where Myc is up in MEL
+
+
+```{r, echo=TRUE,collapse=F}
+GeneswithUpInMelEnrich[1:10,]
+
+
+```
+
+Results Down in Mel
+========================================================
+
+Genes where Myc is down in MEL
+
+
+```{r, echo=TRUE,collapse=F}
+GeneswithDownInMelEnrich[1:10,]
+```
+
+
+Now lets look for Motifs.
+============================
+
+There are a few choices for Motif Enrichment in R but many focus on expression data and their associated promoters.
+
+Making an appropriate background can be hard.
+
+One tactic is to identify Motifs using Meme-ChIP online.
+
+First we have to extract sequences under the DB peaks
+
+Extracting sequences under regions
+============================
+```{r, echo=TRUE,collapse=F}
+
+library(BSgenome)
+library(BSgenome.Mmusculus.UCSC.mm9)
+genome <- BSgenome.Mmusculus.UCSC.mm9
+UpInMel <- renameSeqlevels(UpInMel,paste0("chr",seqlevels(UpInMel)))
+UpInMel <- UpInMel[seqnames(UpInMel) != "chrMT"]
+
+DownInMel <- renameSeqlevels(DownInMel,paste0("chr",seqlevels(DownInMel)))
+DownInMel <- DownInMel[seqnames(DownInMel) != "chrMT"]
+
+UpinMelSequences <- getSeq(genome,GRanges(UpInMel))
+DowninMelSequences <- getSeq(genome,GRanges(DownInMel))
+
+DowninMelSequences[1:2,]
+
+```
+
+Writing to FASTA file
+============================
+```{r, echo=TRUE,collapse=F}
+writeXStringSet(DowninMelSequences,file="DowninMel.fa")
+writeXStringSet(UpinMelSequences,file="UpinMel.fa")
+```
+
+Installing Jaspar
+============================
+```{r, eval=F,echo=TRUE,collapse=F}
+source("https://bioconductor.org/biocLite.R")
+biocLite("MotifDB")
+```
+
+Installing Jaspar
+============================
+```{r, eval=T,echo=TRUE,collapse=F}
+library(seqLogo)
+library(MotifDb)
+PotentialMyc <- as.list(subset (MotifDb, tolower (geneSymbol) == "myc"))
+seqLogo(PotentialMyc[[9]])
+```
+
+Frequency of motifs per basepair peaks
+============================
+```{r, eval=T,echo=TRUE,collapse=F}
+UpinMelCount <- lapply(UpinMelSequences,function(x)countPWM(PotentialMyc[[9]],x))
+DowninMelCount <- lapply(DowninMelSequences,function(x)countPWM(PotentialMyc[[9]],x))
+RevComUpinMelCount <- lapply(reverseComplement(UpinMelSequences),function(x)countPWM(PotentialMyc[[9]],x))
+RevComDowninMelCount <- lapply(reverseComplement(DowninMelSequences),function(x)countPWM(PotentialMyc[[9]],x))
+
+
+UpinMelFreq <- (sum(unlist(c(UpinMelCount,RevComUpinMelCount))))/(sum(width(UpinMelSequences))*2)
+DowninMelFreq <- (sum(unlist(c(DowninMelCount,RevComDowninMelCount))))/(sum(width(DowninMelSequences))*2)
+
+
+```
+
+Frequency of motifs per basepair Chr1
+============================
+
+```{r, echo=TRUE,collapse=F}
+
+chr1MycCounts <- countPWM(PotentialMyc[[9]],genome$chr1)
+RevComchr1MycCounts <- countPWM(PotentialMyc[[9]],reverseComplement(genome$chr1))
+chr1Freq <- (sum(c(chr1MycCounts,RevComchr1MycCounts)))/(length(genome$chr1)*2)
+```
+
+Frequency comparison
+============================
+
+```{r, echo=TRUE,collapse=T}
+
+UpinMelFreq
+DowninMelFreq
+chr1Freq
+```
+
+Session Info
+==========================
+
+```{r, echo=TRUE,collapse=F}
+sessionInfo()
+```
 
 
 
