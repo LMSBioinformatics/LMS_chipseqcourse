@@ -24,7 +24,6 @@ loading the libraries
 
 ```{r}
 library(ChIPQC)
-library(soGGi)
 library(DESeq2)
 library(GenomicRanges)
 library(Rsubread)
@@ -35,13 +34,14 @@ library(Rsubread)
 Reading in a peak from Macs
 ========================================================
 Lets load a single set of peaks fromn Macs calls for Myc in mel and ch12 cell lines.
-```{r,eval=T,echo=F}
+```{r,eval=F,echo=F}
 macsPeaks <- dir("/Users/tcarroll/chipseqcourse/MacsPeaks/",full.names=T)
 singlePeakSet <- ChIPQC:::GetGRanges(macsPeaks[1],sep="\t",simplify=T)
 singlePeakSet
 ```
-```{r,eval=F,echo=T}
-macsPeaks <- dir("/home/ubuntu/chipseqcourseNew/MacsPeaks/",full.names=T)
+
+```{r,eval=T,echo=T}
+macsPeaks <- dir("../MacsPeaks/",full.names=T)
 singlePeakSet <- ChIPQC:::GetGRanges(macsPeaks[1],sep="\t",simplify=T)
 singlePeakSet
 ```
@@ -147,20 +147,10 @@ Now we can count the reads from each sample which land in our high confidence pe
 
 First we will count one file with featureCounts. The first step is to convert our files to SAF format.
 
-```{r,eval=T,echo=FALSE,message=F,warning=F}
-Bams <- dir("/Users/tcarroll/chipseqcourse/chipseqDataFQ/",pattern="*sorted\\..*bam$",full.names=T)
-simplePeaksToCount <- ChIPQC:::GetGRanges(PeaksToCount,simple=T,simplify=T)
 
+```{r,eval=T,echo=TRUE,message=T,warning=F}
+Bams <- dir("../../chipseqcourseData/sortedbams/",pattern="*sorted\\..*bam$",full.names=T)
 
-toCount <- data.frame(GeneID = paste0("ID",seq(1,length(simplePeaksToCount))),
-                      Chr=seqnames(simplePeaksToCount),Start=start(simplePeaksToCount),
-                      End=end(simplePeaksToCount),Strand="-")
-out  <- capture.output(myCountTable <- featureCounts(Bams[1],annot.ext = toCount,nthreads=4))
-myCountTable$counts[1:10]
-```
-
-```{r,eval=F,echo=TRUE,message=F,warning=F}
-Bams <- dir("/home/ubuntu//chipseqcourseData/sortedbams/",pattern="*sorted\\..*bam$",full.names=T)
 simplePeaksToCount <- ChIPQC:::GetGRanges(PeaksToCount,simple=T,simplify=T)
 
 
@@ -168,7 +158,7 @@ toCount <- data.frame(GeneID = paste0("ID",seq(1,length(simplePeaksToCount))),
                       Chr=seqnames(simplePeaksToCount),Start=start(simplePeaksToCount),
                       End=end(simplePeaksToCount),Strand="-")
 
-out  <- capture.output(myCountTable <- featureCounts(Bams[1],annot.ext = toCount,nthreads=4))
+out  <- capture.output(myCountTable <- featureCounts(Bams[1],annot.ext = toCount,nthreads=1))
 
 myCountTable$counts[1:10]
 ```
@@ -179,14 +169,23 @@ Simple Differential binding - Counting all files
 ========================================================
 Now we can use a lapply to count all samples in high confidence peaks
 
-```{r, echo=TRUE}
+```{r, echo=FALSE}
+if(!file.exists("../robjects/MycCounts.RData")){
+out <- capture.output(
+  myCountTableList <- lapply(Bams,function(x)
+                               featureCounts(x,annot.ext = toCount,nthreads=4))
+)
+}
+```
+
+```{r, echo=TRUE,eval=F}
 
 out <- capture.output(
   myCountTableList <- lapply(Bams,function(x)
                                featureCounts(x,annot.ext = toCount,nthreads=4))
 )
-```
 
+```
 You could have a look at **out** to compare mapping ratres between input and ChIP 
 
 Simple Differential binding - Stitching count files together
@@ -201,8 +200,9 @@ colnames(countTable) <- c("ch12myc","ch12myc","ch12input","melmyc","melmyc","mei
 ```
 
 ```{r, echo=FALSE,eval=FALSE}
-
-save(countTable,file="robjects/MycCounts.RData")
+if(!file.exists("../robjects/MycCounts.RData")){
+save(countTable,file="../robjects/MycCounts.RData")
+}
 ```
 
 Simple Differential binding - A simple DEseq2 DE analysis
@@ -251,6 +251,7 @@ DEasGRanges[1:5,]
 ```
 
 ```{r, echo=F,eval=F}
+
 save(DEasGRanges,file="robjects/DEasGRanges.RData")
 ```
 

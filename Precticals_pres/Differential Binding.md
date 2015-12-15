@@ -25,7 +25,6 @@ loading the libraries
 
 ```r
 library(ChIPQC)
-library(soGGi)
 library(DESeq2)
 library(GenomicRanges)
 library(Rsubread)
@@ -36,6 +35,14 @@ library(Rsubread)
 Reading in a peak from Macs
 ========================================================
 Lets load a single set of peaks fromn Macs calls for Myc in mel and ch12 cell lines.
+
+
+
+```r
+macsPeaks <- dir("../MacsPeaks/",full.names=T)
+singlePeakSet <- ChIPQC:::GetGRanges(macsPeaks[1],sep="\t",simplify=T)
+singlePeakSet
+```
 
 ```
 GRanges object with 33498 ranges and 7 metadata columns:
@@ -80,12 +87,6 @@ GRanges object with 33498 ranges and 7 metadata columns:
   [33498] mycch12rep1_peak_33498
   -------
   seqinfo: 22 sequences from an unspecified genome; no seqlengths
-```
-
-```r
-macsPeaks <- dir("/home/ubuntu/chipseqcourseNew/MacsPeaks/",full.names=T)
-singlePeakSet <- ChIPQC:::GetGRanges(macsPeaks[1],sep="\t",simplify=T)
-singlePeakSet
 ```
 
 Getting a consensus set
@@ -260,13 +261,10 @@ Now we can count the reads from each sample which land in our high confidence pe
 First we will count one file with featureCounts. The first step is to convert our files to SAF format.
 
 
-```
- [1] 45 56 51 20 27 27 25 15 46 48
-```
-
 
 ```r
-Bams <- dir("/home/ubuntu//chipseqcourseData/sortedbams/",pattern="*sorted\\..*bam$",full.names=T)
+Bams <- dir("../../chipseqcourseData/sortedbams/",pattern="*sorted\\..*bam$",full.names=T)
+
 simplePeaksToCount <- ChIPQC:::GetGRanges(PeaksToCount,simple=T,simplify=T)
 
 
@@ -274,9 +272,13 @@ toCount <- data.frame(GeneID = paste0("ID",seq(1,length(simplePeaksToCount))),
                       Chr=seqnames(simplePeaksToCount),Start=start(simplePeaksToCount),
                       End=end(simplePeaksToCount),Strand="-")
 
-out  <- capture.output(myCountTable <- featureCounts(Bams[1],annot.ext = toCount,nthreads=4))
+out  <- capture.output(myCountTable <- featureCounts(Bams[1],annot.ext = toCount,nthreads=1))
 
 myCountTable$counts[1:10]
+```
+
+```
+ [1] 45 56 51 20 27 27 25 15 46 48
 ```
 
 
@@ -286,13 +288,14 @@ Simple Differential binding - Counting all files
 Now we can use a lapply to count all samples in high confidence peaks
 
 
+
+
 ```r
 out <- capture.output(
   myCountTableList <- lapply(Bams,function(x)
                                featureCounts(x,annot.ext = toCount,nthreads=4))
 )
 ```
-
 You could have a look at **out** to compare mapping ratres between input and ChIP 
 
 Simple Differential binding - Stitching count files together
@@ -374,24 +377,24 @@ GRanges object with 5 ranges and 6 metadata columns:
   ID9828-12;21341806-21342205       12 [21341806, 21342205]      * |
                                      .baseMean   .log2FoldChange
                                      <numeric>         <numeric>
-    ID978-1;87500888-87501287 398.171664149091  5.49211025039039
-    ID5406-11;3093141-3093540 623.034744317291 -3.13288528522113
+    ID978-1;87500888-87501287 398.171664149091   5.4921102503904
+    ID5406-11;3093141-3093540 623.034744317291 -3.13288528522112
   ID30091-4;45966212-45966611 386.955035821693 -5.95085205061831
-  ID7644-11;78943225-78943624 326.451589484206   5.9845753340433
+  ID7644-11;78943225-78943624 326.451589484206  5.98457533404331
   ID9828-12;21341806-21342205 236.360703672685  4.46944975312101
                                          .lfcSE             .stat
                                       <numeric>         <numeric>
-    ID978-1;87500888-87501287 0.307372671717581  17.8679198111556
-    ID5406-11;3093141-3093540 0.177947698705059 -17.6056521552085
-  ID30091-4;45966212-45966611 0.348081844467862 -17.0961288133709
-  ID7644-11;78943225-78943624 0.355697163541602  16.8249172258113
+    ID978-1;87500888-87501287 0.307372671717574   17.867919811156
+    ID5406-11;3093141-3093540 0.177947698705056 -17.6056521552089
+  ID30091-4;45966212-45966611  0.34808184446787 -17.0961288133706
+  ID7644-11;78943225-78943624 0.355697163541601  16.8249172258113
   ID9828-12;21341806-21342205  0.28987835516267   15.418363163448
                                            .pvalue                .padj
                                          <numeric>            <numeric>
-    ID978-1;87500888-87501287 2.09668197518726e-71 9.62209292052939e-67
-    ID5406-11;3093141-3093540 2.22925075894077e-69 5.11523879146549e-65
-  ID30091-4;45966212-45966611 1.58595193310006e-65  2.4260835371276e-61
-  ID7644-11;78943225-78943624 1.60285560715113e-63  1.8389562380845e-59
+    ID978-1;87500888-87501287 2.09668197517351e-71 9.62209292046628e-67
+    ID5406-11;3093141-3093540 2.22925075892706e-69 5.11523879143403e-65
+  ID30091-4;45966212-45966611 1.58595193310972e-65 2.42608353714238e-61
+  ID7644-11;78943225-78943624 1.60285560714998e-63 1.83895623808317e-59
   ID9828-12;21341806-21342205 1.23187187809972e-53 1.13066128459505e-49
   -------
   seqinfo: 22 sequences from an unspecified genome; no seqlengths
@@ -409,55 +412,59 @@ sessionInfo()
 
 ```
 R version 3.2.2 (2015-08-14)
-Platform: x86_64-apple-darwin13.4.0 (64-bit)
-Running under: OS X 10.11 (El Capitan)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 14.04.2 LTS
 
 locale:
-[1] en_GB.UTF-8/en_GB.UTF-8/en_GB.UTF-8/C/en_GB.UTF-8/en_GB.UTF-8
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
 [1] stats4    parallel  stats     graphics  grDevices utils     datasets 
 [8] methods   base     
 
 other attached packages:
- [1] Rsubread_1.20.2            DESeq2_1.10.0             
- [3] RcppArmadillo_0.6.200.2.0  Rcpp_0.12.2               
- [5] soGGi_1.2.1                BiocParallel_1.4.0        
- [7] ChIPQC_1.6.1               DiffBind_1.16.1           
- [9] RSQLite_1.0.0              DBI_0.3.1                 
-[11] locfit_1.5-9.1             GenomicAlignments_1.6.1   
-[13] Rsamtools_1.22.0           Biostrings_2.38.2         
-[15] XVector_0.10.0             limma_3.26.3              
-[17] SummarizedExperiment_1.0.1 Biobase_2.30.0            
-[19] GenomicRanges_1.22.1       GenomeInfoDb_1.6.1        
-[21] IRanges_2.4.4              S4Vectors_0.8.3           
-[23] BiocGenerics_0.16.1        ggplot2_1.0.1             
-[25] knitr_1.11                
+ [1] Rsubread_1.20.0            DESeq2_1.10.0             
+ [3] RcppArmadillo_0.6.100.0.0  Rcpp_0.12.1               
+ [5] ChIPQC_1.6.1               DiffBind_1.16.0           
+ [7] RSQLite_1.0.0              DBI_0.3.1                 
+ [9] locfit_1.5-9.1             GenomicAlignments_1.6.0   
+[11] Rsamtools_1.22.0           Biostrings_2.38.0         
+[13] XVector_0.10.0             limma_3.26.0              
+[15] SummarizedExperiment_1.0.0 Biobase_2.30.0            
+[17] GenomicRanges_1.22.0       GenomeInfoDb_1.6.0        
+[19] IRanges_2.4.0              S4Vectors_0.8.0           
+[21] BiocGenerics_0.16.0        ggplot2_1.0.1             
+[23] knitr_1.11                 BiocInstaller_1.20.0      
 
 loaded via a namespace (and not attached):
  [1] Category_2.36.0        bitops_1.0-6           RColorBrewer_1.1-2    
  [4] tools_3.2.2            rpart_4.1-10           KernSmooth_2.23-15    
  [7] Hmisc_3.17-0           colorspace_1.2-6       nnet_7.3-11           
-[10] gridExtra_2.0.0        Nozzle.R1_1.1-1        preprocessCore_1.32.0 
-[13] sendmailR_1.2-1        graph_1.48.0           formatR_1.2.1         
-[16] rtracklayer_1.30.1     caTools_1.17.1         scales_0.3.0          
-[19] checkmate_1.6.3        BatchJobs_1.6          genefilter_1.52.0     
-[22] RBGL_1.46.0            stringr_1.0.0          digest_0.6.8          
-[25] foreign_0.8-66         AnnotationForge_1.12.0 base64enc_0.1-3       
-[28] BBmisc_1.9             GOstats_2.36.0         hwriter_1.3.2         
+[10] gridExtra_2.0.0        Nozzle.R1_1.1-1        sendmailR_1.2-1       
+[13] graph_1.48.0           formatR_1.2.1          rtracklayer_1.30.0    
+[16] caTools_1.17.1         scales_0.3.0           checkmate_1.6.2       
+[19] BatchJobs_1.6          genefilter_1.52.0      RBGL_1.46.0           
+[22] stringr_1.0.0          digest_0.6.8           foreign_0.8-66        
+[25] AnnotationForge_1.12.0 base64enc_0.1-3        BBmisc_1.9            
+[28] GOstats_2.36.0         hwriter_1.3.2          BiocParallel_1.3.54   
 [31] gtools_3.5.0           acepack_1.3-3.3        RCurl_1.95-4.7        
 [34] magrittr_1.5           GO.db_3.2.2            Formula_1.2-1         
 [37] futile.logger_1.4.1    Matrix_1.2-2           munsell_0.4.2         
-[40] proto_0.3-10           stringi_1.0-1          edgeR_3.12.0          
-[43] MASS_7.3-45            zlibbioc_1.16.0        gplots_2.17.0         
+[40] proto_0.3-10           stringi_0.5-5          edgeR_3.12.0          
+[43] MASS_7.3-44            zlibbioc_1.16.0        gplots_2.17.0         
 [46] fail_1.3               plyr_1.8.3             grid_3.2.2            
 [49] gdata_2.17.0           lattice_0.20-33        splines_3.2.2         
-[52] GenomicFeatures_1.22.5 annotate_1.48.0        rjson_0.2.15          
-[55] systemPipeR_1.4.5      geneplotter_1.48.0     reshape2_1.4.1        
-[58] biomaRt_2.26.1         futile.options_1.0.0   XML_3.98-1.3          
+[52] GenomicFeatures_1.22.0 annotate_1.48.0        rjson_0.2.15          
+[55] systemPipeR_1.4.0      geneplotter_1.48.0     reshape2_1.4.1        
+[58] biomaRt_2.26.0         futile.options_1.0.0   XML_3.98-1.3          
 [61] evaluate_0.8           ShortRead_1.28.0       latticeExtra_0.6-26   
 [64] lambda.r_1.1.7         gtable_0.1.2           amap_0.8-14           
-[67] chipseq_1.20.0         xtable_1.8-0           survival_2.38-3       
+[67] chipseq_1.20.0         xtable_1.7-4           survival_2.38-3       
 [70] pheatmap_1.0.7         AnnotationDbi_1.32.0   cluster_2.0.3         
 [73] brew_1.0-6             GSEABase_1.32.0       
 ```
